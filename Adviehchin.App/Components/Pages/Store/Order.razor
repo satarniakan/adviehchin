@@ -1,0 +1,154 @@
+@page "/order/{OrderNumber}"
+@layout StoreLayout
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IStoreOrderService Orders
+@inject AuthenticationStateProvider AuthState
+<PageTitle>سفارش @OrderNumber | ادویه‌چین</PageTitle>
+
+<div class="st-container" style="padding-top:2.2rem;">
+    @if (order is null)
+    {
+        <div class="st-empty" style="padding-block:4rem;">
+            <i class="bi bi-receipt"></i>
+            <h3>سفارش پیدا نشد</h3>
+            <p>شمارهٔ سفارش را بررسی کنید یا از حساب کاربری خود سفارش‌ها را ببینید.</p>
+            <a class="st-btn st-btn-sm" href="/my-orders">سفارش‌های من</a>
+        </div>
+    }
+    else
+    {
+        <div class="st-success">
+            <div class="st-success-banner">
+                <div class="st-success-icon">
+                    <i class="bi @(order.Status == StoreOrderStatus.Paid ? "bi-check-lg" : "bi-bag-check")"></i>
+                </div>
+                @if (order.Status == StoreOrderStatus.Paid)
+                {
+                    <h1>پرداخت شما با موفقیت انجام شد</h1>
+                    <p>سفارش ثبت شد و به‌زودی برای آماده‌سازی و ارسال آن با شما تماس می‌گیریم.</p>
+                }
+                else
+                {
+                    <h1>سفارش شما با موفقیت ثبت شد</h1>
+                    <p>سفارش در حال آماده‌سازی است. مبلغ را هنگام تحویل، به مأمور ارسال پرداخت می‌کنید.</p>
+                }
+                <div class="st-order-code">
+                    <i class="bi bi-hash"></i>
+                    <span>@order.OrderNumber</span>
+                    <span class="st-status @StatusClass(order.Status)" style="margin-inline-start:.5rem;">@order.Status.ToPersian()</span>
+                </div>
+                <div style="margin-top:.7rem; font-size:.75rem; color:var(--st-muted);">
+                    تاریخ ثبت: @order.CreatedAt.ToPersianDateTime() · روش پرداخت: @order.PaymentMethod.ToPersian()
+                </div>
+            </div>
+
+            <div class="st-order-grid">
+                <div class="st-panel">
+                    <div class="st-panel-title"><i class="bi bi-box-seam"></i> اقلام سفارش</div>
+                    @foreach (var item in order.Items)
+                    {
+                        <div class="st-order-item">
+                            <span class="st-order-item-img">
+                                <img src="@(item.ImageUrl ?? "/images/store/products/saffron.jpg")" alt="@item.ProductName" />
+                            </span>
+                            <div>
+                                <div class="st-order-item-name">@item.ProductName</div>
+                                <div class="st-order-item-meta">@item.Unit · @StoreText.PersianDigits(item.Quantity.ToString()) عدد</div>
+                            </div>
+                            <span class="st-order-item-price">@StoreText.Price(item.LineTotalTomans)</span>
+                        </div>
+                    }
+
+                    <div style="margin-top:1rem;">
+                        <div class="st-summary-row">
+                            <span>جمع کالاها</span>
+                            <strong>@StoreText.Price(order.SubtotalTomans)</strong>
+                        </div>
+                        <div class="st-summary-row">
+                            <span>هزینهٔ ارسال</span>
+                            <strong>@(order.ShippingTomans == 0 ? "رایگان" : StoreText.Price(order.ShippingTomans))</strong>
+                        </div>
+                        <div class="st-summary-row total">
+                            <span>مبلغ کل</span>
+                            <strong>@StoreText.Price(order.TotalTomans)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="st-panel">
+                    <div class="st-panel-title"><i class="bi bi-geo-alt"></i> اطلاعات تحویل</div>
+                    <div class="st-info-list">
+                        <div><i class="bi bi-person"></i><span>@DisplayName</span></div>
+                        <div><i class="bi bi-telephone"></i><span dir="ltr">@DisplayPhone</span></div>
+                        <div>
+                            <i class="bi bi-pin-map"></i>
+                            <span>@(hasFullAccess ? $"{order.Province}، {order.City}، {order.Address}" : $"{order.Province}، {order.City} — نشانی کامل فقط برای صاحب سفارش نمایش داده می‌شود.")</span>
+                        </div>
+                        @if (hasFullAccess && !string.IsNullOrWhiteSpace(order.PostalCode))
+                        {
+                            <div><i class="bi bi-mailbox"></i><span dir="ltr">@order.PostalCode</span></div>
+                        }
+                        @if (hasFullAccess && !string.IsNullOrWhiteSpace(order.Note))
+                        {
+                            <div><i class="bi bi-chat-left-text"></i><span>@order.Note</span></div>
+                        }
+                    </div>
+
+                    <div style="display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1.3rem;">
+                        <a class="st-btn st-btn-sm" href="/shop">ادامهٔ خرید</a>
+                        <a class="st-btn st-btn-ghost st-btn-sm" href="/my-orders">سفارش‌های من</a>
+                        <PrintButton Text="چاپ سفارش" CssClass="st-btn st-btn-ghost st-btn-sm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string OrderNumber { get; set; } = string.Empty;
+
+    private StoreOrder? order;
+    private bool hasFullAccess;
+
+    private string DisplayName =>
+        hasFullAccess || order is null ? order?.CustomerName ?? "" : MaskName(order.CustomerName);
+
+    private string DisplayPhone =>
+        hasFullAccess || order is null ? order?.Phone ?? "" : MaskPhone(order.Phone);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        order = await Orders.GetByNumberAsync(OrderNumber);
+        if (order is null) return;
+
+        var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        hasFullAccess = user.IsInRole(Roles.Admin) ||
+                        (!string.IsNullOrEmpty(userId) && order.UserId == userId);
+    }
+
+    private static string MaskName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "—";
+        return name.Trim()[0] + "…";
+    }
+
+    private static string MaskPhone(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone) || phone.Length < 8) return "—";
+        return phone[..4] + "***" + phone[^2..];
+    }
+
+    private static string StatusClass(StoreOrderStatus status) => status switch
+    {
+        StoreOrderStatus.PendingPayment => "pending",
+        StoreOrderStatus.Processing => "processing",
+        StoreOrderStatus.Paid => "paid",
+        StoreOrderStatus.Shipped => "shipped",
+        StoreOrderStatus.Delivered => "delivered",
+        _ => "cancelled"
+    };
+}

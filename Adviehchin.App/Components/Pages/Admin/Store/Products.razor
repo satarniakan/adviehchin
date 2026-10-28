@@ -1,0 +1,181 @@
+@page "/admin/store/products"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = StorePermissions.Products)]
+@inherits AppComponentBase
+@inject IStoreAdminService Admin
+<PageTitle>مدیریت محصولات</PageTitle>
+
+@if (!string.IsNullOrWhiteSpace(Success))
+{
+    <div class="alert alert-success">@Success</div>
+}
+
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">محصولات فروشگاه</h3>
+        <div class="text-body-secondary small">افزودن، ویرایش و حذف محصولات؛ قیمت‌ها به تومان</div>
+    </div>
+    <a href="/admin/store/products/add" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> محصول جدید
+    </a>
+</div>
+
+<div class="card-panel mb-3">
+    <div class="d-flex gap-2">
+        <input class="form-control form-control-sm" placeholder="جست‌وجو: نام یا SKU…"
+               @bind="search" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
+        <button class="btn btn-sm btn-outline-secondary" @onclick="SearchAsync">جست‌وجو</button>
+        @if (!string.IsNullOrWhiteSpace(search))
+        {
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/store/products">پاک کردن</a>
+        }
+    </div>
+</div>
+
+<div class="card-panel">
+    @if (page is null)
+    {
+        <LoadingSkeleton />
+    }
+    else if (page.Items.Count == 0)
+    {
+        <div class="text-center text-body-secondary py-4">
+            <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
+            <span class="small">محصولی یافت نشد.</span>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">تصویر</th>
+                        <th>نام / دسته</th>
+                        <th>قیمت</th>
+                        <th>موجودی</th>
+                        <th>وضعیت</th>
+                        <th>ویژه</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in page.Items)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@(product.ImageUrl ?? "/images/store/products/saffron.jpg")" alt="@product.Name"
+                                     style="width:52px; height:52px; object-fit:cover; border-radius:8px; border:1px solid var(--brand-border);" />
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@product.Name</div>
+                                <div class="text-body-secondary small">@(product.Category?.Name ?? "—") · <span dir="ltr">@product.Slug</span></div>
+                            </td>
+                            <td>
+                                @if (product.IsOnSale)
+                                {
+                                    <div class="fw-semibold">@StoreText.Price(product.EffectivePriceTomans)</div>
+                                    <div class="text-body-secondary small text-decoration-line-through">@StoreText.Price(product.PriceTomans)</div>
+                                }
+                                else
+                                {
+                                    <div class="fw-semibold">@StoreText.Price(product.PriceTomans)</div>
+                                }
+                            </td>
+                            <td>
+                                @if (product.StockQuantity > 0)
+                                {
+                                    <span class="badge text-bg-success">@product.StockQuantity</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">ناموجود</span>
+                                }
+                            </td>
+                            <td>
+                                @if (product.IsActive)
+                                {
+                                    <span class="badge text-bg-primary">فعال</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">غیرفعال</span>
+                                }
+                            </td>
+                            <td>
+                                @if (product.IsFeatured)
+                                {
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                }
+                                else
+                                {
+                                    <span class="text-body-secondary small">—</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a href="@($"/product/{product.Slug}")" target="_blank" class="btn btn-sm btn-outline-secondary" title="مشاهده در فروشگاه">
+                                        <i class="bi bi-box-arrow-up-left"></i>
+                                    </a>
+                                    <a href="@($"/admin/store/products/edit/{product.Id}")" class="btn btn-sm btn-outline-primary">ویرایش</a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => AskDeleteAsync(product.Id, product.Name)">حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <Pager CurrentPage="page.Page" TotalPages="page.TotalPages" TotalCount="page.TotalCount"
+               OnPageChanged="GoToPage" />
+    }
+</div>
+
+<AppConfirmDialog @ref="confirmDialog" />
+
+@code {
+    [SupplyParameterFromQuery(Name = "success")]
+    public string? Success { get; set; }
+
+    private PagedResult<StoreProduct>? page;
+    private string? search;
+    private int currentPage = 1;
+    private const int PageSize = 15;
+    private AppConfirmDialog confirmDialog = default!;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        page = await Admin.GetProductsAsync(search, currentPage, PageSize);
+    }
+
+    private async Task GoToPage(int newPage)
+    {
+        currentPage = newPage;
+        await LoadAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        currentPage = 1;
+        await LoadAsync();
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SearchAsync();
+    }
+
+    private Task AskDeleteAsync(int id, string name) => RunSafe(async () =>
+    {
+        var confirmed = await confirmDialog.ShowAsync(
+            "حذف محصول",
+            $"محصول «{name}» حذف شود؟ این عملیات بازگشت‌پذیر نیست.");
+        if (!confirmed) return;
+
+        await Admin.DeleteProductAsync(id);
+        Toast.ShowSuccess("محصول حذف شد.");
+        await LoadAsync();
+    });
+}

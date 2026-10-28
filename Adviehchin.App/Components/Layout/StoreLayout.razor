@@ -1,0 +1,183 @@
+@inherits LayoutComponentBase
+@inject IStoreCatalogService Catalog
+@inject ILogger<StoreLayout> Logger
+
+<div class="store-shell">
+    <div class="st-topbar">
+        <div class="st-container st-topbar-inner">
+            <div class="st-topbar-note">
+                <i class="bi bi-truck"></i>
+                <span>ارسال رایگان برای خرید بالای ۵۰۰٬۰۰۰ تومان</span>
+            </div>
+            <div class="st-topbar-links">
+                <a href="/my-orders"><i class="bi bi-box-seam"></i> سفارش‌های من</a>
+                <span class="st-sep"></span>
+                <AuthorizeView>
+                    <Authorized>
+                        <a href="/profile"><i class="bi bi-person-check"></i> حساب من</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login"><i class="bi bi-person"></i> ورود / ثبت‌نام</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <span class="st-sep"></span>
+                <span dir="ltr"><i class="bi bi-telephone"></i> ۰۲۱-۰۰۰۰۰۰۰۰</span>
+            </div>
+        </div>
+    </div>
+
+    <header class="st-header">
+        <div class="st-container st-header-inner">
+            <a class="st-logo" href="/" aria-label="ادویه‌چین">
+                <span class="st-logo-mark"><i class="bi bi-flower1"></i></span>
+                <span class="st-logo-text">
+                    <strong>ادویه‌چین</strong>
+                    <small>عطر اصیل، طعم خانه</small>
+                </span>
+            </a>
+
+            <form class="st-search" action="/shop" method="get" role="search">
+                <input type="search" name="q" placeholder="جست‌وجو در ادویه‌ها، سبزی‌ها و پک‌های هدیه…" aria-label="جست‌وجو" />
+                <button type="submit" aria-label="جست‌وجو"><i class="bi bi-search"></i></button>
+            </form>
+
+            <div class="st-actions">
+                <AuthorizeView>
+                    <Authorized>
+                        <a class="st-action" href="/profile">
+                            <i class="bi bi-person-check"></i>
+                            <span>حساب من</span>
+                        </a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="st-action" href="/login">
+                            <i class="bi bi-person"></i>
+                            <span>ورود</span>
+                        </a>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+                <a class="st-action st-action-cart" href="/cart">
+                    <CartBadge @rendermode="InteractiveServer" />
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <nav class="st-nav" aria-label="منوی اصلی">
+        <div class="st-container st-nav-inner">
+            <a class="st-nav-link" href="/">خانه</a>
+            <a class="st-nav-link" href="/shop">فروشگاه</a>
+            @if (categories.Count > 0)
+            {
+                <div class="st-nav-dropdown">
+                    <a class="st-nav-link" href="/shop">دسته‌بندی‌ها <i class="bi bi-chevron-down"></i></a>
+                    <div class="st-nav-menu">
+                        @foreach (var category in categories)
+                        {
+                            <a href="@($"/shop?category={category.Slug}")">@category.Name</a>
+                        }
+                    </div>
+                </div>
+            }
+            <a class="st-nav-link" href="/shop?sort=discount">تخفیف‌های ویژه</a>
+            <a class="st-nav-link" href="/#why-us">درباره ما</a>
+            <a class="st-nav-link" href="/#contact">تماس با ما</a>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <a class="st-nav-link st-nav-admin" href="/admin/store/products"><i class="bi bi-speedometer2"></i> مدیریت فروشگاه</a>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </nav>
+
+    <main class="st-main">
+        @Body
+    </main>
+
+    <footer class="st-footer" id="contact">
+        <div class="st-container st-footer-grid">
+            <div class="st-footer-col st-footer-about">
+                <a class="st-logo st-logo-footer" href="/">
+                    <span class="st-logo-mark"><i class="bi bi-flower1"></i></span>
+                    <span class="st-logo-text"><strong>ادویه‌چین</strong><small>عطر اصیل، طعم خانه</small></span>
+                </a>
+                <p>
+                    ادویه‌چین با انتخاب ادویه و سبزی خشک از کشاورزان و کارگاه‌های محلی،
+                    عطر و طعم اصیل آشپزخانهٔ ایرانی را به سفرهٔ شما می‌آورد.
+                </p>
+                <div class="st-social">
+                    <a href="#" aria-label="اینستاگرام"><i class="bi bi-instagram"></i></a>
+                    <a href="#" aria-label="تلگرام"><i class="bi bi-telegram"></i></a>
+                    <a href="#" aria-label="واتساپ"><i class="bi bi-whatsapp"></i></a>
+                </div>
+            </div>
+
+            <div class="st-footer-col">
+                <h5>دسترسی سریع</h5>
+                <ul>
+                    <li><a href="/">خانه</a></li>
+                    <li><a href="/shop">فروشگاه</a></li>
+                    <li><a href="/cart">سبد خرید</a></li>
+                    <li><a href="/my-orders">سفارش‌های من</a></li>
+                    <AuthorizeView>
+                        <Authorized>
+                            <li><a href="/profile">حساب من</a></li>
+                        </Authorized>
+                        <NotAuthorized>
+                            <li><a href="/login">ورود / ثبت‌نام</a></li>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </ul>
+            </div>
+
+            <div class="st-footer-col">
+                <h5>دسته‌بندی‌ها</h5>
+                <ul>
+                    @foreach (var category in categories)
+                    {
+                        <li><a href="@($"/shop?category={category.Slug}")">@category.Name</a></li>
+                    }
+                </ul>
+            </div>
+
+            <div class="st-footer-col">
+                <h5>تماس با ما</h5>
+                <ul class="st-footer-contact">
+                    <li><i class="bi bi-geo-alt"></i> تهران، بازار ادویه، پلاک ۱۲</li>
+                    <li dir="ltr"><i class="bi bi-telephone"></i> ۰۲۱-۰۰۰۰۰۰۰۰</li>
+                    <li><i class="bi bi-envelope"></i> info@adviehchin.ir</li>
+                    <li><i class="bi bi-clock"></i> شنبه تا پنجشنبه، ۹ تا ۱۸</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="st-footer-bottom">
+            <div class="st-container st-footer-bottom-inner">
+                <span>© @StoreText.PersianDigits(DateTime.Now.Year.ToString()) ادویه‌چین — تمامی حقوق محفوظ است.</span>
+                <span class="st-footer-pay">
+                    <i class="bi bi-credit-card"></i>
+                    پرداخت در محل و آنلاین
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <ToastContainer @rendermode="InteractiveServer" />
+</div>
+
+@code {
+    private IReadOnlyList<StoreCategory> categories = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await Catalog.GetCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "بارگذاری دسته‌های فروشگاه در چیدمان ناموفق بود");
+        }
+    }
+}

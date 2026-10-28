@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Adviehchin.Domain/Adviehchin.Domain.csproj" />
+  <Project Path="Adviehchin.Application/Adviehchin.Application.csproj" />
+  <Project Path="Adviehchin.Infrastructure/Adviehchin.Infrastructure.csproj" />
+  <!-- پروژهٔ اجرایی: فقط همین یکی را اجرا کنید (در Visual Studio: Set as Startup Project) -->
+  <Project Path="Adviehchin.App/Adviehchin.App.csproj" />
+  <Project Path="Adviehchin.Tests/Adviehchin.Tests.csproj" />
+</Solution>

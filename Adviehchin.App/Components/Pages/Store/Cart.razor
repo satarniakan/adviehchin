@@ -1,0 +1,134 @@
+@page "/cart"
+@layout StoreLayout
+@rendermode InteractiveServer
+@inherits AppComponentBase
+@inject CartState CartStore
+<PageTitle>سبد خرید | ادویه‌چین</PageTitle>
+
+<div class="st-page-head">
+    <div class="st-container">
+        <div class="st-breadcrumb">
+            <a href="/">خانه</a>
+            <i class="bi bi-chevron-left"></i>
+            <span>سبد خرید</span>
+        </div>
+        <h1>سبد خرید</h1>
+    </div>
+</div>
+
+<div class="st-container">
+    @if (CartStore.IsEmpty)
+    {
+        <div class="st-empty" style="padding-block:4rem;">
+            <i class="bi bi-bag-x"></i>
+            <h3>سبد خرید شما خالی است</h3>
+            <p>از میان ادویه‌ها و پک‌های هدیهٔ ما انتخاب کنید.</p>
+            <a class="st-btn" href="/shop">رفتن به فروشگاه <i class="bi bi-arrow-left"></i></a>
+        </div>
+    }
+    else
+    {
+        <div class="st-cart-wrap">
+            <div class="st-panel">
+                <div class="st-panel-title"><i class="bi bi-bag"></i> اقلام سبد (@StoreText.PersianDigits(CartStore.Lines.Count.ToString()))</div>
+
+                @foreach (var line in CartStore.Lines)
+                {
+                    <div class="st-cart-line">
+                        <a class="st-cart-img" href="@($"/product/{line.Slug}")">
+                            <img src="@(line.ImageUrl ?? "/images/store/products/saffron.jpg")" alt="@line.Name" />
+                        </a>
+                        <div>
+                            <div class="st-cart-name"><a href="@($"/product/{line.Slug}")">@line.Name</a></div>
+                            <div class="st-cart-sub">@line.Unit · @StoreText.Price(line.UnitPriceTomans)</div>
+                            <div class="st-qty" style="margin-top:.5rem; width:fit-content;">
+                                <button type="button" disabled="@(line.Quantity <= 1)" @onclick="() => ChangeAsync(line, -1)" aria-label="کاهش">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <span>@StoreText.PersianDigits(line.Quantity.ToString())</span>
+                                <button type="button" disabled="@(line.Quantity >= Math.Min(99, line.StockQuantity))" @onclick="() => ChangeAsync(line, 1)" aria-label="افزایش">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:.5rem;">
+                            <span class="st-cart-line-price">@StoreText.Price(line.LineTotalTomans)</span>
+                            <button type="button" class="st-cart-remove" @onclick="() => RemoveAsync(line)" title="حذف از سبد">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                <div class="st-cart-actions">
+                    <a class="st-btn st-btn-ghost st-btn-sm" href="/shop">
+                        <i class="bi bi-arrow-right"></i> ادامهٔ خرید
+                    </a>
+                    <button type="button" class="st-btn st-btn-ghost st-btn-sm" @onclick="CartStore.ClearAsync">
+                        <i class="bi bi-x-circle"></i> خالی کردن سبد
+                    </button>
+                </div>
+            </div>
+
+            <aside class="st-panel">
+                <div class="st-panel-title"><i class="bi bi-receipt"></i> جمع سفارش</div>
+
+                <div class="st-summary-row">
+                    <span>جمع کالاها</span>
+                    <strong>@StoreText.Price(CartStore.SubtotalTomans)</strong>
+                </div>
+                <div class="st-summary-row">
+                    <span>هزینهٔ ارسال</span>
+                    <strong>@(ShippingTomans == 0 ? "رایگان" : StoreText.Price(ShippingTomans))</strong>
+                </div>
+                @if (ShippingTomans > 0)
+                {
+                    <div class="st-summary-note">
+                        <i class="bi bi-truck"></i>
+                        <span>
+                            با خرید @StoreText.Price(StoreOrderService.FreeShippingThresholdTomans - CartStore.SubtotalTomans)
+                            دیگر، ارسال سفارش شما رایگان می‌شود.
+                        </span>
+                    </div>
+                }
+                <div class="st-summary-row total">
+                    <span>مبلغ قابل پرداخت</span>
+                    <strong>@StoreText.Price(CartStore.SubtotalTomans + ShippingTomans)</strong>
+                </div>
+
+                <a class="st-btn st-btn-block" href="/checkout" style="margin-top:1rem;">
+                    ادامهٔ فرآیند خرید <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <div style="text-align:center; margin-top:.9rem; font-size:.72rem; color:var(--st-muted);">
+                    <i class="bi bi-shield-check" style="color:var(--st-primary);"></i>
+                    پرداخت امن؛ در محل یا درگاه آزمایشی
+                </div>
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    private long ShippingTomans =>
+        CartStore.SubtotalTomans >= StoreOrderService.FreeShippingThresholdTomans
+            ? 0
+            : StoreOrderService.ShippingCostTomans;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await CartStore.InitializeAsync();
+        StateHasChanged();
+    }
+
+    private Task ChangeAsync(CartLine line, int delta) =>
+        RunSafe(() => CartStore.SetQuantityAsync(line.ProductId, line.Quantity + delta));
+
+    private Task RemoveAsync(CartLine line) =>
+        RunSafe(async () =>
+        {
+            await CartStore.RemoveAsync(line.ProductId);
+            Toast.ShowInfo("محصول از سبد خرید حذف شد.");
+        });
+}

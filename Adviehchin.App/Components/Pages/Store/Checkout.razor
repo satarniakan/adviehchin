@@ -1,0 +1,262 @@
+@page "/checkout"
+@layout StoreLayout
+@rendermode InteractiveServer
+@inherits AppComponentBase
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@inject CartState Cart
+@inject IStoreOrderService Orders
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Nav
+<PageTitle>تسویه حساب | ادویه‌چین</PageTitle>
+
+<div class="st-page-head">
+    <div class="st-container">
+        <div class="st-breadcrumb">
+            <a href="/">خانه</a>
+            <i class="bi bi-chevron-left"></i>
+            <a href="/cart">سبد خرید</a>
+            <i class="bi bi-chevron-left"></i>
+            <span>تسویه حساب</span>
+        </div>
+        <h1>تسویه حساب</h1>
+    </div>
+</div>
+
+<div class="st-container">
+    @if (!initialized)
+    {
+        <div class="st-empty"><i class="bi bi-arrow-repeat"></i><p>در حال بارگذاری سبد خرید…</p></div>
+    }
+    else if (Cart.IsEmpty)
+    {
+        <div class="st-empty" style="padding-block:4rem;">
+            <i class="bi bi-bag-x"></i>
+            <h3>سبد خرید شما خالی است</h3>
+            <p>برای ثبت سفارش ابتدا محصولی به سبد اضافه کنید.</p>
+            <a class="st-btn" href="/shop">رفتن به فروشگاه</a>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="PlaceOrderAsync">
+            <DataAnnotationsValidator />
+            <div class="st-checkout">
+                <div class="st-panel">
+                    <div class="st-panel-title"><i class="bi bi-person-lines-fill"></i> اطلاعات گیرنده</div>
+
+                    <div class="st-form-grid">
+                        <div class="st-field">
+                            <label for="customerName">نام و نام خانوادگی <span>*</span></label>
+                            <InputText id="customerName" @bind-Value="form.CustomerName" placeholder="مثال: مریم احمدی" />
+                            <ValidationMessage For="() => form.CustomerName" />
+                        </div>
+                        <div class="st-field">
+                            <label for="phone">شمارهٔ موبایل <span>*</span></label>
+                            <InputText id="phone" @bind-Value="form.Phone" dir="ltr" inputmode="tel" placeholder="09xxxxxxxxx" />
+                            <ValidationMessage For="() => form.Phone" />
+                        </div>
+                        <div class="st-field">
+                            <label for="province">استان <span>*</span></label>
+                            <InputSelect id="province" @bind-Value="form.Province">
+                                <option value="">انتخاب استان</option>
+                                @foreach (var province in StoreText.Provinces)
+                                {
+                                    <option value="@province">@province</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => form.Province" />
+                        </div>
+                        <div class="st-field">
+                            <label for="city">شهر <span>*</span></label>
+                            <InputText id="city" @bind-Value="form.City" placeholder="مثال: تهران" />
+                            <ValidationMessage For="() => form.City" />
+                        </div>
+                        <div class="st-field full">
+                            <label for="address">نشانی کامل پستی <span>*</span></label>
+                            <InputTextArea id="address" @bind-Value="form.Address" placeholder="خیابان، کوچه، پلاک، واحد" />
+                            <ValidationMessage For="() => form.Address" />
+                        </div>
+                        <div class="st-field">
+                            <label for="postal">کد پستی (اختیاری)</label>
+                            <InputText id="postal" @bind-Value="form.PostalCode" dir="ltr" inputmode="numeric" placeholder="۱۰ رقم" />
+                        </div>
+                        <div class="st-field full">
+                            <label for="note">توضیح سفارش (اختیاری)</label>
+                            <InputTextArea id="note" @bind-Value="form.Note" placeholder="مثلاً: پیش از ارسال تماس بگیرید." />
+                        </div>
+                    </div>
+
+                    <div class="st-panel-title" style="margin-top:1.6rem;"><i class="bi bi-credit-card"></i> روش پرداخت</div>
+                    <InputRadioGroup @bind-Value="form.PaymentMethod">
+                        <div class="st-pay-methods">
+                            <label class="st-pay-option @(form.PaymentMethod == StorePaymentMethod.CashOnDelivery ? "is-active" : "")">
+                                <InputRadio Value="StorePaymentMethod.CashOnDelivery" />
+                                <div>
+                                    <strong>پرداخت در محل</strong>
+                                    <span>هنگام تحویل سفارش، مبلغ را به مأمور ارسال پرداخت می‌کنید.</span>
+                                </div>
+                            </label>
+                            <label class="st-pay-option @(form.PaymentMethod == StorePaymentMethod.OnlineGateway ? "is-active" : "")">
+                                <InputRadio Value="StorePaymentMethod.OnlineGateway" />
+                                <div>
+                                    <strong>پرداخت آنلاین (آزمایشی)</strong>
+                                    <span>پس از ثبت سفارش، در صفحهٔ تأیید، پرداخت را به‌صورت آزمایشی کامل می‌کنید.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </InputRadioGroup>
+                </div>
+
+                <aside class="st-panel">
+                    <div class="st-panel-title"><i class="bi bi-receipt"></i> خلاصهٔ سفارش</div>
+
+                    @foreach (var line in Cart.Lines)
+                    {
+                        <div class="st-checkout-line">
+                            <span class="st-checkout-line-img">
+                                <img src="@(line.ImageUrl ?? "/images/store/products/saffron.jpg")" alt="@line.Name" />
+                            </span>
+                            <div>
+                                <div class="st-checkout-line-name">@line.Name</div>
+                                <div class="st-checkout-line-qty">@StoreText.PersianDigits(line.Quantity.ToString()) × @StoreText.Price(line.UnitPriceTomans)</div>
+                            </div>
+                            <span class="st-checkout-line-price">@StoreText.Price(line.LineTotalTomans)</span>
+                        </div>
+                    }
+
+                    <div style="margin-top:1rem;">
+                        <div class="st-summary-row">
+                            <span>جمع کالاها</span>
+                            <strong>@StoreText.Price(Cart.SubtotalTomans)</strong>
+                        </div>
+                        <div class="st-summary-row">
+                            <span>هزینهٔ ارسال</span>
+                            <strong>@(ShippingTomans == 0 ? "رایگان" : StoreText.Price(ShippingTomans))</strong>
+                        </div>
+                        <div class="st-summary-row total">
+                            <span>مبلغ قابل پرداخت</span>
+                            <strong>@StoreText.Price(Cart.SubtotalTomans + ShippingTomans)</strong>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="st-btn st-btn-block" style="margin-top:1.1rem;" disabled="@processing">
+                        @if (processing)
+                        {
+                            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                            <span>در حال ثبت سفارش…</span>
+                        }
+                        else
+                        {
+                            <span>ثبت سفارش</span>
+                            <i class="bi bi-check2"></i>
+                        }
+                    </button>
+
+                    <div style="text-align:center; margin-top:.9rem; font-size:.72rem; color:var(--st-muted);">
+                        با ثبت سفارش، قوانین فروشگاه را می‌پذیرید.
+                    </div>
+                </aside>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private readonly CheckoutForm form = new();
+    private bool initialized;
+    private bool processing;
+    private string? userId;
+
+    private long ShippingTomans =>
+        Cart.SubtotalTomans >= StoreOrderService.FreeShippingThresholdTomans
+            ? 0
+            : StoreOrderService.ShippingCostTomans;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var user = state.User;
+        userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            form.CustomerName = user.FindFirst("FullName")?.Value ?? form.CustomerName;
+            form.Phone = user.Identity.Name ?? form.Phone;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await Cart.InitializeAsync();
+        initialized = true;
+        StateHasChanged();
+    }
+
+    private async Task PlaceOrderAsync()
+    {
+        if (Cart.IsEmpty)
+        {
+            Toast.ShowError("سبد خرید خالی است.");
+            return;
+        }
+
+        processing = true;
+        try
+        {
+            var order = await Orders.CreateAsync(new CheckoutModel
+            {
+                CustomerName = form.CustomerName,
+                Phone = form.Phone,
+                Province = form.Province,
+                City = form.City,
+                Address = form.Address,
+                PostalCode = form.PostalCode,
+                Note = form.Note,
+                PaymentMethod = form.PaymentMethod
+            }, userId, Cart.Lines);
+
+            await Cart.ClearAsync();
+            Nav.NavigateTo($"/order/{order.OrderNumber}");
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError(ErrorMessageHelper.ToUserMessage(ex));
+        }
+        finally
+        {
+            processing = false;
+        }
+    }
+
+    private sealed class CheckoutForm
+    {
+        [Required(ErrorMessage = "نام و نام خانوادگی را وارد کنید.")]
+        [StringLength(150, ErrorMessage = "نام حداکثر ۱۵۰ نویسه است.")]
+        public string CustomerName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "شمارهٔ موبایل را وارد کنید.")]
+        [RegularExpression(@"^09\d{9}$", ErrorMessage = "شمارهٔ موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.")]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "استان را انتخاب کنید.")]
+        public string Province { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "شهر را وارد کنید.")]
+        [StringLength(80, ErrorMessage = "نام شهر حداکثر ۸۰ نویسه است.")]
+        public string City { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "نشانی را وارد کنید.")]
+        [StringLength(600, MinimumLength = 10, ErrorMessage = "نشانی باید بین ۱۰ تا ۶۰۰ نویسه باشد.")]
+        public string Address { get; set; } = string.Empty;
+
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "کد پستی باید ۱۰ رقم باشد.")]
+        public string? PostalCode { get; set; }
+
+        [StringLength(1000, ErrorMessage = "توضیح حداکثر ۱۰۰۰ نویسه است.")]
+        public string? Note { get; set; }
+
+        public StorePaymentMethod PaymentMethod { get; set; } = StorePaymentMethod.CashOnDelivery;
+    }
+}

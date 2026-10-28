@@ -1,0 +1,294 @@
+@page "/product/{Slug}"
+@layout StoreLayout
+@rendermode InteractiveServer
+@inherits AppComponentBase
+@inject IStoreCatalogService Catalog
+@inject CartState Cart
+@inject NavigationManager Nav
+<PageTitle>@(product?.Name ?? "محصول") | ادویه‌چین</PageTitle>
+
+@if (product is null)
+{
+    <div class="st-container" style="padding-block: 3rem;">
+        <div class="st-empty">
+            <i class="bi bi-box-seam"></i>
+            <h3>محصول پیدا نشد</h3>
+            <p>ممکن است این محصول حذف شده یا نشانی آن تغییر کرده باشد.</p>
+            <a class="st-btn st-btn-sm" href="/shop">بازگشت به فروشگاه</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="st-page-head">
+        <div class="st-container">
+            <div class="st-breadcrumb">
+                <a href="/">خانه</a>
+                <i class="bi bi-chevron-left"></i>
+                <a href="/shop">فروشگاه</a>
+                @if (product.Category is not null)
+                {
+                    <i class="bi bi-chevron-left"></i>
+                    <a href="@($"/shop?category={product.Category.Slug}")">@product.Category.Name</a>
+                }
+                <i class="bi bi-chevron-left"></i>
+                <span>@product.Name</span>
+            </div>
+            <h1 style="font-size:1.25rem; margin-top:.5rem;">@product.Name</h1>
+        </div>
+    </div>
+
+    <div class="st-container">
+        <div class="st-product">
+            <div class="st-product-gallery">
+                <div class="st-product-main-img">
+                    <img src="@selectedImage" alt="@product.Name" />
+                </div>
+                @if (gallery.Count > 1)
+                {
+                    <div class="st-product-thumbs">
+                        @foreach (var image in gallery)
+                        {
+                            <button type="button" class="st-product-thumb @(selectedImage == image ? "is-active" : "")"
+                                    @onclick="() => selectedImage = image" aria-label="تصویر محصول">
+                                <img src="@image" alt="@product.Name" />
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="st-product-info">
+                <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.8rem;">
+                    @if (product.IsFeatured)
+                    {
+                        <span class="st-badge">پیشنهاد ویژه</span>
+                    }
+                    @if (product.DiscountPercent > 0)
+                    {
+                        <span class="st-badge hot">@StoreText.PersianDigits(product.DiscountPercent.ToString())٪ تخفیف</span>
+                    }
+                </div>
+
+                <h1>@product.Name</h1>
+
+                <div class="st-product-meta">
+                    <span class="st-card-rating">
+                        <i class="bi bi-star-fill"></i>
+                        <strong>@StoreText.PersianDigits(product.Rating.ToString("0.0"))</strong>
+                        <span>(@StoreText.PersianDigits(product.ReviewCount.ToString()) نظر)</span>
+                    </span>
+                    <span class="st-sep"></span>
+                    <span><i class="bi bi-bag-check me-1"></i> @StoreText.PersianDigits(product.Sku ?? "—")</span>
+                    <span class="st-sep"></span>
+                    <span><i class="bi bi-tags me-1"></i> @(product.Category?.Name ?? "ادویه")</span>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(product.ShortDescription))
+                {
+                    <p class="st-product-desc">@product.ShortDescription</p>
+                }
+
+                <div class="st-product-price-box">
+                    <div>
+                        @if (product.IsOnSale)
+                        {
+                            <span class="st-price-old">@StoreText.Price(product.PriceTomans)</span>
+                        }
+                        <div class="st-price-big">
+                            @StoreText.Price(product.EffectivePriceTomans)
+                            <small>/ @product.Unit</small>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:.5rem; align-items:flex-end;">
+                        @if (product.InStock)
+                        {
+                            <span class="st-stock in"><i class="bi bi-check-circle-fill"></i> موجود در انبار</span>
+                        }
+                        else
+                        {
+                            <span class="st-stock out"><i class="bi bi-x-circle-fill"></i> ناموجود</span>
+                        }
+                        @if (product.DiscountPercent > 0)
+                        {
+                            <span class="st-discount-pill">@StoreText.PersianDigits(product.DiscountPercent.ToString())٪ تخفیف</span>
+                        }
+                    </div>
+                </div>
+
+                @if (product.InStock)
+                {
+                    <div class="st-qty-row">
+                        <span style="font-size:.82rem; font-weight:700;">تعداد:</span>
+                        <div class="st-qty">
+                            <button type="button" disabled="@(Quantity <= 1)" @onclick="Decrease" aria-label="کاهش تعداد">
+                                <i class="bi bi-dash"></i>
+                            </button>
+                            <span>@StoreText.PersianDigits(Quantity.ToString())</span>
+                            <button type="button" disabled="@(Quantity >= MaxQuantity)" @onclick="Increase" aria-label="افزایش تعداد">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                        <span style="font-size:.72rem; color: var(--st-muted);">حداکثر @StoreText.PersianDigits(MaxQuantity.ToString()) عدد</span>
+                    </div>
+
+                    <div class="st-product-actions">
+                        <button type="button" class="st-btn" @onclick="AddToCartAsync" disabled="@busy">
+                            <i class="bi bi-bag-plus"></i> افزودن به سبد خرید
+                        </button>
+                        <button type="button" class="st-btn st-btn-dark" @onclick="BuyNowAsync" disabled="@busy">
+                            خرید فوری <i class="bi bi-arrow-left"></i>
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="st-product-actions">
+                        <button type="button" class="st-btn" disabled>ناموجود</button>
+                        <a class="st-btn st-btn-ghost" href="/shop">محصولات مشابه</a>
+                    </div>
+                }
+
+                <div class="st-product-extra">
+                    <span><i class="bi bi-truck"></i> ارسال رایگان بالای ۵۰۰ هزار تومان</span>
+                    <span><i class="bi bi-shield-check"></i> تضمین اصالت و تازگی</span>
+                    <span><i class="bi bi-arrow-repeat"></i> ۷ روز ضمانت بازگشت</span>
+                    <span><i class="bi bi-cash-coin"></i> پرداخت در محل یا آنلاین</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="st-tabs">
+            <div class="st-tab-head">
+                <button type="button" class="st-tab-btn @(tab == 0 ? "is-active" : "")" @onclick="() => tab = 0">توضیحات</button>
+                <button type="button" class="st-tab-btn @(tab == 1 ? "is-active" : "")" @onclick="() => tab = 1">مشخصات</button>
+                <button type="button" class="st-tab-btn @(tab == 2 ? "is-active" : "")" @onclick="() => tab = 2">ارسال و بازگشت</button>
+            </div>
+
+            @if (tab == 0)
+            {
+                <div class="st-tab-body">
+                    @(string.IsNullOrWhiteSpace(product.Description) ? "توضیحی برای این محصول ثبت نشده است." : product.Description)
+                </div>
+            }
+            else if (tab == 1)
+            {
+                <table class="st-spec-table">
+                    <tbody>
+                        <tr><th>دسته‌بندی</th><td>@(product.Category?.Name ?? "—")</td></tr>
+                        <tr><th>واحد فروش</th><td>@product.Unit</td></tr>
+                        <tr><th>کد کالا (SKU)</th><td dir="ltr">@(product.Sku ?? "—")</td></tr>
+                        <tr><th>موجودی انبار</th><td>@StoreText.PersianDigits(product.StockQuantity.ToString()) عدد</td></tr>
+                        <tr><th>امتیاز کاربران</th><td>@StoreText.PersianDigits(product.Rating.ToString("0.0")) از ۵ (@StoreText.PersianDigits(product.ReviewCount.ToString()) نظر)</td></tr>
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="st-tab-body">
+                    ارسال سفارش‌ها در تهران معمولاً ۱ تا ۲ روز کاری و در سایر شهرها ۲ تا ۴ روز کاری زمان می‌برد.
+                    هزینهٔ ارسال ۴۵٬۰۰۰ تومان است و برای سفارش‌های بالای ۵۰۰٬۰۰۰ تومان رایگان محاسبه می‌شود.
+                    در صورت نارضایتی از کیفیت، تا ۷ روز پس از دریافت امکان بازگشت کالا وجود دارد.
+                </div>
+            }
+        </div>
+
+        @if (related.Count > 0)
+        {
+            <section class="st-section">
+                <div class="st-section-head">
+                    <div>
+                        <h2>محصولات مرتبط</h2>
+                        <p>شاید این‌ها هم به سبد شما بیایند.</p>
+                    </div>
+                </div>
+                <div class="st-grid">
+                    @foreach (var item in related)
+                    {
+                        <ProductCard Product="item" />
+                    }
+                </div>
+            </section>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private StoreProduct? product;
+    private IReadOnlyList<StoreProduct> related = [];
+    private List<string> gallery = [];
+    private string selectedImage = string.Empty;
+    private int Quantity = 1;
+    private int tab;
+    private bool busy;
+
+    private int MaxQuantity => Math.Clamp(product?.StockQuantity ?? 1, 1, 99);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        product = await Catalog.GetProductAsync(Slug);
+        related = [];
+        gallery = [];
+        Quantity = 1;
+        tab = 0;
+
+        if (product is null) return;
+
+        gallery.Add(string.IsNullOrWhiteSpace(product.ImageUrl)
+            ? "/images/store/products/saffron.jpg"
+            : product.ImageUrl);
+        gallery.AddRange(product.Images
+            .Select(i => i.Url)
+            .Where(u => !string.IsNullOrWhiteSpace(u) && !gallery.Contains(u)));
+        selectedImage = gallery[0];
+
+        related = await Catalog.GetRelatedAsync(product.CategoryId, product.Id, 4);
+        if (related.Count == 0)
+        {
+            related = await Catalog.GetFeaturedAsync(4);
+        }
+    }
+
+    private void Decrease()
+    {
+        if (Quantity > 1) Quantity--;
+    }
+
+    private void Increase()
+    {
+        if (Quantity < MaxQuantity) Quantity++;
+    }
+
+    private Task AddToCartAsync() => RunSafe(async () =>
+    {
+        if (product is null) return;
+        busy = true;
+        try
+        {
+            await Cart.AddAsync(product, Quantity);
+            Toast.ShowSuccess("محصول به سبد خرید اضافه شد.");
+        }
+        finally
+        {
+            busy = false;
+        }
+    });
+
+    private Task BuyNowAsync() => RunSafe(async () =>
+    {
+        if (product is null) return;
+        busy = true;
+        try
+        {
+            await Cart.AddAsync(product, Quantity);
+            Nav.NavigateTo("/cart");
+        }
+        finally
+        {
+            busy = false;
+        }
+    });
+}

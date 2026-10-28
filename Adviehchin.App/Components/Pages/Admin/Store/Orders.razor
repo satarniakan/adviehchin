@@ -1,0 +1,125 @@
+@page "/admin/store/orders"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = StorePermissions.Orders)]
+@inherits AppComponentBase
+@inject IStoreOrderService OrderService
+<PageTitle>مدیریت سفارش‌ها</PageTitle>
+
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">سفارش‌های فروشگاه</h3>
+        <div class="text-body-secondary small">پیگیری وضعیت، مشاهدهٔ جزئیات و تغییر مرحلهٔ سفارش</div>
+    </div>
+</div>
+
+<div class="card-panel mb-3">
+    <div class="d-flex flex-wrap gap-2">
+        <input class="form-control form-control-sm" style="max-width:300px;"
+               placeholder="جست‌وجو: شمارهٔ سفارش، نام یا موبایل…"
+               @bind="search" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
+        <select class="form-select form-select-sm" style="max-width:200px;" @bind="statusFilter" @bind:after="FilterAsync">
+            <option value="">همهٔ وضعیت‌ها</option>
+            @foreach (var status in Enum.GetValues<StoreOrderStatus>())
+            {
+                <option value="@status">@status.ToPersian()</option>
+            }
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="SearchAsync">جست‌وجو</button>
+        @if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(statusFilter))
+        {
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/store/orders">پاک کردن فیلترها</a>
+        }
+    </div>
+</div>
+
+<div class="card-panel">
+    @if (page is null)
+    {
+        <LoadingSkeleton />
+    }
+    else if (page.Items.Count == 0)
+    {
+        <div class="text-center text-body-secondary py-4">
+            <i class="bi bi-receipt fs-3 d-block mb-2"></i>
+            <span class="small">سفارشی با این مشخصات یافت نشد.</span>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>شمارهٔ سفارش</th>
+                        <th>مشتری</th>
+                        <th>تاریخ</th>
+                        <th>مبلغ</th>
+                        <th>پرداخت</th>
+                        <th>وضعیت</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in page.Items)
+                    {
+                        <tr>
+                            <td class="fw-semibold" dir="ltr" style="text-align:right;">@order.OrderNumber</td>
+                            <td>
+                                <div>@order.CustomerName</div>
+                                <div class="text-body-secondary small" dir="ltr" style="text-align:right;">@order.Phone</div>
+                            </td>
+                            <td class="small">@order.CreatedAt.ToPersianDateTime()</td>
+                            <td class="fw-semibold">@StoreText.Price(order.TotalTomans)</td>
+                            <td class="small">@order.PaymentMethod.ToPersian()</td>
+                            <td><span class="badge @order.Status.BadgeClass()">@order.Status.ToPersian()</span></td>
+                            <td class="text-end">
+                                <a href="@($"/admin/store/orders/{order.Id}")" class="btn btn-sm btn-outline-primary">جزئیات</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <Pager CurrentPage="page.Page" TotalPages="page.TotalPages" TotalCount="page.TotalCount"
+               OnPageChanged="GoToPage" />
+    }
+</div>
+
+@code {
+    private PagedResult<StoreOrder>? page;
+    private string? search;
+    private string? statusFilter;
+    private int currentPage = 1;
+    private const int PageSize = 15;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        StoreOrderStatus? status = Enum.TryParse<StoreOrderStatus>(statusFilter, out var parsed) ? parsed : null;
+        page = await OrderService.GetPagedAsync(status, search, currentPage, PageSize);
+    }
+
+    private async Task GoToPage(int newPage)
+    {
+        currentPage = newPage;
+        await LoadAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        currentPage = 1;
+        await LoadAsync();
+    }
+
+    private async Task FilterAsync()
+    {
+        currentPage = 1;
+        await LoadAsync();
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SearchAsync();
+    }
+}

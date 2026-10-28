@@ -1,0 +1,26 @@
+@inject CartState Cart
+@implements IDisposable
+
+<span class="st-cart-icon">
+    <i class="bi bi-bag"></i>
+    @if (Cart.TotalQuantity > 0)
+    {
+        <span class="st-cart-badge">@StoreText.PersianDigits(Cart.TotalQuantity.ToString())</span>
+    }
+</span>
+<span>سبد خرید</span>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        Cart.Changed += OnCartChanged;
+        await Cart.InitializeAsync();
+        StateHasChanged();
+    }
+
+    private void OnCartChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Cart.Changed -= OnCartChanged;
+}

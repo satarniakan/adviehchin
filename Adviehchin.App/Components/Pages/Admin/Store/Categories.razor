@@ -1,0 +1,209 @@
+@page "/admin/store/categories"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = StorePermissions.Categories)]
+@inherits AppComponentBase
+@inject IStoreAdminService Admin
+<PageTitle>مدیریت دسته‌ها</PageTitle>
+
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">دسته‌بندی‌های فروشگاه</h3>
+        <div class="text-body-secondary small">دسته‌ها در منو، فیلتر فروشگاه و صفحهٔ اصلی نمایش داده می‌شوند.</div>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" @onclick="NewCategory">
+        <i class="bi bi-plus-lg me-1"></i> دستهٔ جدید
+    </button>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card-panel">
+            @if (categories is null)
+            {
+                <LoadingSkeleton />
+            }
+            else if (categories.Count == 0)
+            {
+                <div class="text-center text-body-secondary py-4">
+                    <i class="bi bi-tags fs-3 d-block mb-2"></i>
+                    <span class="small">هنوز دسته‌ای ثبت نشده است.</span>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>نام</th>
+                                <th>نشانی</th>
+                                <th>ترتیب</th>
+                                <th>وضعیت</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in categories)
+                            {
+                                <tr class="@(form.Id == category.Id ? "table-active" : "")">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@(category.ImageUrl ?? "/images/store/products/advieh.jpg")" alt="@category.Name"
+                                                 style="width:42px; height:42px; object-fit:cover; border-radius:8px;" />
+                                            <span class="fw-semibold">@category.Name</span>
+                                        </div>
+                                    </td>
+                                    <td><span dir="ltr" class="text-body-secondary small">@category.Slug</span></td>
+                                    <td>@category.SortOrder</td>
+                                    <td>
+                                        @if (category.IsActive)
+                                        {
+                                            <span class="badge text-bg-primary">فعال</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-secondary">غیرفعال</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditAsync(category.Id)">ویرایش</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => AskDeleteAsync(category.Id, category.Name)">حذف</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card-panel">
+            <h5 class="mb-3">@(form.Id == 0 ? "افزودن دسته" : "ویرایش دسته")</h5>
+
+            <EditForm Model="form" OnValidSubmit="SaveAsync">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">نام دسته <span class="text-danger">*</span></label>
+                    <InputText class="form-control" @bind-Value="form.Name" placeholder="مثال: ادویه‌های اصیل" />
+                    <ValidationMessage For="() => form.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">نشانی (slug)</label>
+                    <InputText class="form-control" @bind-Value="form.Slug" dir="ltr" placeholder="asli" />
+                    <div class="form-text">خالی بگذارید تا از نام ساخته شود.</div>
+                    <ValidationMessage For="() => form.Slug" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">توضیحات</label>
+                    <InputTextArea class="form-control" @bind-Value="form.Description" rows="3" />
+                    <ValidationMessage For="() => form.Description" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">نشانی تصویر</label>
+                    <InputText class="form-control" @bind-Value="form.ImageUrl" dir="ltr"
+                               placeholder="/images/store/products/advieh.jpg" />
+                    <ValidationMessage For="() => form.ImageUrl" />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">ترتیب نمایش</label>
+                        <InputNumber class="form-control" @bind-Value="form.SortOrder" min="0" />
+                        <ValidationMessage For="() => form.SortOrder" />
+                    </div>
+                    <div class="col-6 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <InputCheckbox class="form-check-input" @bind-Value="form.IsActive" id="catActive" />
+                            <label class="form-check-label" for="catActive">فعال</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" disabled="@saving">
+                        @if (saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                        }
+                        ذخیره
+                    </button>
+                    @if (form.Id != 0)
+                    {
+                        <button type="button" class="btn btn-outline-secondary" @onclick="NewCategory">انصراف</button>
+                    }
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<AppConfirmDialog @ref="confirmDialog" />
+
+@code {
+    private IReadOnlyList<StoreCategory>? categories;
+    private CategoryAdminInput form = new();
+    private bool saving;
+    private AppConfirmDialog confirmDialog = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+        NewCategory();
+    }
+
+    private async Task LoadAsync()
+    {
+        categories = await Admin.GetCategoriesAsync();
+    }
+
+    private void NewCategory()
+    {
+        form = new CategoryAdminInput
+        {
+            SortOrder = (categories?.Count ?? 0) + 1
+        };
+    }
+
+    private Task EditAsync(int id) => RunSafe(async () =>
+    {
+        var input = await Admin.GetCategoryInputAsync(id);
+        if (input is not null) form = input;
+    });
+
+    private Task SaveAsync() => RunSafe(async () =>
+    {
+        saving = true;
+        try
+        {
+            await Admin.SaveCategoryAsync(form);
+            Toast.ShowSuccess("دسته ذخیره شد.");
+            await LoadAsync();
+            NewCategory();
+        }
+        finally
+        {
+            saving = false;
+        }
+    });
+
+    private Task AskDeleteAsync(int id, string name) => RunSafe(async () =>
+    {
+        var confirmed = await confirmDialog.ShowAsync(
+            "حذف دسته",
+            $"دستهٔ «{name}» حذف شود؟ دسته‌ای که محصول دارد قابل حذف نیست.");
+        if (!confirmed) return;
+
+        await Admin.DeleteCategoryAsync(id);
+        Toast.ShowSuccess("دسته حذف شد.");
+        await LoadAsync();
+        if (form.Id == id) NewCategory();
+    });
+}

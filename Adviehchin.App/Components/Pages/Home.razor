@@ -1,0 +1,377 @@
+@page "/"
+@layout StoreLayout
+@rendermode InteractiveServer
+@inject IStoreCatalogService Catalog
+<PageTitle>ادویه‌چین | فروشگاه ادویه و خواربار</PageTitle>
+
+<section class="st-hero" data-hero>
+    <article class="st-hero-slide is-active">
+        <div class="st-hero-copy">
+            <span class="st-eyebrow"><i class="bi bi-stars"></i> تازه از مزرعه تا آشپزخانه</span>
+            <h1>عطر ادویه‌های اصیل،<br />طعم خانه را می‌سازد</h1>
+            <p>
+                زعفران، زردچوبه، دارچین و سبزی‌های خشکِ دست‌چین؛ مستقیم از کشاورزان محلی
+                و با بسته‌بندی تازه به سفرهٔ شما می‌رسد.
+            </p>
+            <div class="st-hero-cta">
+                <a class="st-btn" href="/shop">خرید از فروشگاه <i class="bi bi-arrow-left"></i></a>
+                <a class="st-btn st-btn-ghost" href="/shop?sort=discount">تخفیف‌های امروز</a>
+            </div>
+        </div>
+        <div class="st-hero-media">
+            <img src="/images/store/hero-spices.jpg" alt="ادویه‌های اصیل ادویه‌چین" />
+            <div class="st-hero-price">
+                <i class="bi bi-patch-check-fill" style="color: var(--st-primary); font-size: 1.4rem;"></i>
+                <div>
+                    <strong>تضمین تازگی</strong>
+                    <span>آسیاب و بسته‌بندی هفتگی</span>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <article class="st-hero-slide">
+        <div class="st-hero-copy">
+            <span class="st-eyebrow"><i class="bi bi-award"></i> سرگل قائنات</span>
+            <h1>زعفران سرگل ممتاز،<br />با رنگ و عطر بی‌نظیر</h1>
+            <p>
+                رشته‌های بلند و پررنگ زعفران سرگل، مناسب برای پلو، دسر و هدیه.
+                هر بسته با تاریخ آسیاب و شناسنامهٔ کیفیت همراه است.
+            </p>
+            <div class="st-hero-cta">
+                <a class="st-btn" href="/shop?category=asli">مشاهدهٔ زعفران <i class="bi bi-arrow-left"></i></a>
+                <a class="st-btn st-btn-ghost" href="/product/saffron-sargol">جزئیات محصول</a>
+            </div>
+        </div>
+        <div class="st-hero-media">
+            <img src="/images/store/banner-saffron.jpg" alt="زعفران سرگل ممتاز" />
+        </div>
+    </article>
+
+    <article class="st-hero-slide">
+        <div class="st-hero-copy">
+            <span class="st-eyebrow"><i class="bi bi-gift"></i> هدیه‌ای به یادماندنی</span>
+            <h1>پک‌های هدیهٔ ادویه،<br />برای هر سلیقه</h1>
+            <p>
+                ست‌های چیدمان‌شده از ادویه‌های پرکاربرد، در جعبه‌های چوبی و پارچه‌ای؛
+                انتخابی گرم و کاربردی برای مهمانی و مناسبت‌ها.
+            </p>
+            <div class="st-hero-cta">
+                <a class="st-btn" href="/shop?category=gifts">دیدن پک‌ها <i class="bi bi-arrow-left"></i></a>
+                <a class="st-btn st-btn-ghost" href="/#contact">سفارش سازمانی</a>
+            </div>
+        </div>
+        <div class="st-hero-media">
+            <img src="/images/store/banner-gift.jpg" alt="پک هدیهٔ ادویه" />
+        </div>
+    </article>
+
+    <button class="st-hero-arrow" data-hero-prev aria-label="اسلاید قبلی"
+            style="position:absolute; top:50%; inset-inline-end:1rem; transform:translateY(-50%); z-index:5;">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+    <button class="st-hero-arrow" data-hero-next aria-label="اسلاید بعدی"
+            style="position:absolute; top:50%; inset-inline-start:1rem; transform:translateY(-50%); z-index:5;">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <div class="st-hero-dots">
+        <button type="button" data-hero-dot class="is-active" aria-label="اسلاید ۱"></button>
+        <button type="button" data-hero-dot aria-label="اسلاید ۲"></button>
+        <button type="button" data-hero-dot aria-label="اسلاید ۳"></button>
+    </div>
+</section>
+
+<section class="st-features">
+    <div class="st-feature">
+        <i class="bi bi-truck"></i>
+        <div>
+            <strong>ارسال سریع و رایگان</strong>
+            <span>سفارش بالای ۵۰۰ هزار تومان، ارسال رایگان</span>
+        </div>
+    </div>
+    <div class="st-feature">
+        <i class="bi bi-shield-check"></i>
+        <div>
+            <strong>تضمین اصالت و تازگی</strong>
+            <span>تهیه از کشاورزان و کارگاه‌های محلی</span>
+        </div>
+    </div>
+    <div class="st-feature">
+        <i class="bi bi-arrow-repeat"></i>
+        <div>
+            <strong>بازگشت آسان کالا</strong>
+            <span>۷ روز ضمانت بازگشت در صورت نارضایتی</span>
+        </div>
+    </div>
+</section>
+
+@if (categories.Count > 0)
+{
+    <section class="st-section">
+        <div class="st-section-head">
+            <div>
+                <h2>خرید بر اساس دسته‌بندی</h2>
+                <p>از ادویه‌های پایه تا پک‌های هدیه؛ هر چه برای آشپزخانه لازم دارید.</p>
+            </div>
+            <a class="st-link-more" href="/shop">همهٔ محصولات <i class="bi bi-arrow-left"></i></a>
+        </div>
+        <div class="st-cats">
+            @foreach (var category in categories)
+            {
+                <a class="st-cat" href="@($"/shop?category={category.Slug}")">
+                    <span class="st-cat-img">
+                        <img src="@(category.ImageUrl ?? "/images/store/products/advieh.jpg")" alt="@category.Name" loading="lazy" />
+                    </span>
+                    <strong>@category.Name</strong>
+                    <span>مشاهدهٔ محصولات</span>
+                </a>
+            }
+        </div>
+    </section>
+}
+
+<section class="st-section">
+    <div class="st-section-head">
+        <div>
+            <h2>پیشنهادهای ویژهٔ ادویه‌چین</h2>
+            <p>انتخاب‌شده‌ترین ادویه‌ها برای طعم بهتر غذاهای شما.</p>
+        </div>
+        <a class="st-link-more" href="/shop">مشاهدهٔ همه <i class="bi bi-arrow-left"></i></a>
+    </div>
+
+    @if (featured.Count == 0)
+    {
+        <div class="st-empty">
+            <i class="bi bi-bag"></i>
+            <h3>محصولی برای نمایش نیست</h3>
+            <p>به‌زودی محصولات تازه در این بخش قرار می‌گیرد.</p>
+        </div>
+    }
+    else
+    {
+        <div class="st-grid">
+            @foreach (var product in featured)
+            {
+                <ProductCard Product="product" />
+            }
+        </div>
+    }
+</section>
+
+<section class="st-banners">
+    <article class="st-banner">
+        <img src="/images/store/banner-saffron.jpg" alt="زعفران سرگل" />
+        <div class="st-banner-copy">
+            <span class="st-eyebrow">پرفروش‌ترین</span>
+            <h3>زعفران سرگل قائنات</h3>
+            <p>رشته‌های بلند، رنگ‌دهی بالا و عطر ماندگار برای پلو و دسر.</p>
+            <a href="/shop?category=asli">خرید کنید <i class="bi bi-arrow-left"></i></a>
+        </div>
+    </article>
+    <article class="st-banner">
+        <img src="/images/store/banner-gift.jpg" alt="پک هدیه ادویه" />
+        <div class="st-banner-copy">
+            <span class="st-eyebrow">هدیهٔ خاص</span>
+            <h3>ست‌های ادویه در جعبهٔ چوبی</h3>
+            <p>ترکیبی از شش ادویهٔ پرکاربرد، آمادهٔ هدیه دادن.</p>
+            <a href="/shop?category=gifts">دیدن پک‌ها <i class="bi bi-arrow-left"></i></a>
+        </div>
+    </article>
+</section>
+
+@if (onSale.Count > 0)
+{
+    <section class="st-sale-band">
+        <div class="st-section-head">
+            <div>
+                <h2>تخفیف‌های امروز</h2>
+                <p>فرصت محدود؛ تازه‌ترین تخفیف‌های فروشگاه.</p>
+            </div>
+            <a class="st-link-more" href="/shop?sort=discount">همهٔ تخفیف‌ها <i class="bi bi-arrow-left"></i></a>
+        </div>
+        <div class="st-grid">
+            @foreach (var product in onSale)
+            {
+                <ProductCard Product="product" />
+            }
+        </div>
+    </section>
+}
+
+@if (categories.Count > 0)
+{
+    <section class="st-section">
+        <div class="st-section-head">
+            <div>
+                <h2>تازه‌های هر دسته</h2>
+                <p>محصولات تازه‌رسیده را دسته‌به‌دسته ببینید.</p>
+            </div>
+        </div>
+
+        <div class="st-tab-head" style="background:#fff; border:1px solid var(--st-line); border-radius:12px; padding:.4rem .6rem; margin-bottom:1.4rem;">
+            @foreach (var category in categories)
+            {
+                <button type="button"
+                        class="st-tab-btn @(activeTab == category.Slug ? "is-active" : "")"
+                        @onclick="() => SelectTabAsync(category.Slug)">
+                    @category.Name
+                </button>
+            }
+        </div>
+
+        @if (tabLoading)
+        {
+            <div class="st-empty"><i class="bi bi-arrow-repeat"></i><p>در حال بارگذاری…</p></div>
+        }
+        else if (tabProducts.Count == 0)
+        {
+            <div class="st-empty"><i class="bi bi-bag"></i><p>در این دسته محصولی ثبت نشده است.</p></div>
+        }
+        else
+        {
+            <div class="st-grid">
+                @foreach (var product in tabProducts)
+                {
+                    <ProductCard Product="product" />
+                }
+            </div>
+        }
+    </section>
+}
+
+<section class="st-section" id="why-us">
+    <div class="st-section-head">
+        <div>
+            <h2>چرا ادویه‌چین؟</h2>
+            <p>روایت مشتریانی که طعم تازه را انتخاب کرده‌اند.</p>
+        </div>
+    </div>
+    <div class="st-quotes">
+        <article class="st-quote">
+            <i class="bi bi-quote"></i>
+            <div class="st-quote-stars">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            </div>
+            <p>
+                زعفرانی که خریدم واقعاً رنگ و عطر داشت؛ برخلاف نمونه‌هایی که قبلاً
+                گرفته بودم. بسته‌بندی هم تمیز و مقاوم بود.
+            </p>
+            <div class="st-quote-author">
+                <span class="st-quote-avatar">م</span>
+                <div>
+                    <strong>مریم احمدی</strong>
+                    <span>مشتری از تهران</span>
+                </div>
+            </div>
+        </article>
+        <article class="st-quote">
+            <i class="bi bi-quote"></i>
+            <div class="st-quote-stars">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            </div>
+            <p>
+                ادویهٔ پلوی آماده‌شان دقیقاً طعم ادویهٔ خانگی خودمان را دارد.
+                سفارش دومم را هم ثبت کردم و زود رسید.
+            </p>
+            <div class="st-quote-author">
+                <span class="st-quote-avatar">ر</span>
+                <div>
+                    <strong>رضا کریمی</strong>
+                    <span>مشتری از اصفهان</span>
+                </div>
+            </div>
+        </article>
+        <article class="st-quote">
+            <i class="bi bi-quote"></i>
+            <div class="st-quote-stars">
+                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+            </div>
+            <p>
+                پک هدیه را برای تولد خواهرم گرفتم؛ چیدمانش خیلی شیک بود و
+                کیفیت ادویه‌ها هم عالی. حتماً باز هم سفارش می‌دهم.
+            </p>
+            <div class="st-quote-author">
+                <span class="st-quote-avatar">ن</span>
+                <div>
+                    <strong>نگار موسوی</strong>
+                    <span>مشتری از شیراز</span>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+<section class="st-newsletter">
+    <div>
+        <h2>از تخفیف‌ها جا نمانید</h2>
+        <p>
+            ایمیل خود را ثبت کنید تا خبر تازه‌های فروشگاه، تخفیف‌های فصلی و
+            دستورهای آشپزی با ادویه را برایتان بفرستیم.
+        </p>
+    </div>
+    @if (subscribed)
+    {
+        <div class="st-news-done">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>ثبت شد! از این پس خبرهای ادویه‌چین برای «@email» ارسال می‌شود.</span>
+        </div>
+    }
+    else
+    {
+        <form class="st-news-form" @onsubmit="SubscribeAsync" @onsubmit:preventDefault>
+            <input type="email" @bind="email" placeholder="نشانی ایمیل شما" aria-label="نشانی ایمیل" required />
+            <button type="submit">عضویت</button>
+        </form>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<StoreCategory> categories = [];
+    private IReadOnlyList<StoreProduct> featured = [];
+    private IReadOnlyList<StoreProduct> onSale = [];
+    private IReadOnlyList<StoreProduct> tabProducts = [];
+    private string? activeTab;
+    private bool tabLoading;
+    private bool subscribed;
+    private string? email;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categoriesTask = Catalog.GetCategoriesAsync();
+        var featuredTask = Catalog.GetFeaturedAsync(8);
+        var saleTask = Catalog.GetOnSaleAsync(4);
+
+        await Task.WhenAll(categoriesTask, featuredTask, saleTask);
+
+        categories = await categoriesTask;
+        featured = await featuredTask;
+        onSale = await saleTask;
+
+        if (categories.Count > 0)
+        {
+            await SelectTabAsync(categories[0].Slug);
+        }
+    }
+
+    private async Task SelectTabAsync(string slug)
+    {
+        activeTab = slug;
+        tabLoading = true;
+        try
+        {
+            tabProducts = await Catalog.GetByCategoryAsync(slug, 8);
+        }
+        finally
+        {
+            tabLoading = false;
+        }
+    }
+
+    private Task SubscribeAsync()
+    {
+        if (string.IsNullOrWhiteSpace(email)) return Task.CompletedTask;
+        subscribed = true;
+        return Task.CompletedTask;
+    }
+}

@@ -1,0 +1,179 @@
+@page "/admin/store/products/add"
+@page "/admin/store/products/edit/{Id:int}"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = StorePermissions.Products)]
+@inherits AppComponentBase
+@inject IStoreAdminService Admin
+@inject NavigationManager Nav
+<PageTitle>@(Id == 0 ? "محصول جدید" : "ویرایش محصول")</PageTitle>
+
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">@(Id == 0 ? "افزودن محصول" : "ویرایش محصول")</h3>
+        <div class="text-body-secondary small">قیمت‌ها به تومان وارد می‌شوند؛ خالی گذاشتن «قیمت با تخفیف» یعنی بدون تخفیف.</div>
+    </div>
+    <a href="/admin/store/products" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i> بازگشت به فهرست
+    </a>
+</div>
+
+@if (loading)
+{
+    <LoadingSkeleton />
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">محصول موردنظر پیدا نشد.</div>
+}
+else if (input is not null)
+{
+    <div class="card-panel">
+        <EditForm Model="input" OnValidSubmit="SaveAsync">
+            <DataAnnotationsValidator />
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">نام محصول <span class="text-danger">*</span></label>
+                    <InputText class="form-control" @bind-Value="input.Name" placeholder="مثال: زعفران سرگل ممتاز" />
+                    <ValidationMessage For="() => input.Name" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">دسته‌بندی <span class="text-danger">*</span></label>
+                    <InputSelect class="form-select" @bind-Value="input.CategoryId">
+                        <option value="0">انتخاب کنید…</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => input.CategoryId" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">نشانی (slug)</label>
+                    <InputText class="form-control" @bind-Value="input.Slug" dir="ltr" placeholder="saffron-sargol" />
+                    <div class="form-text">خالی بگذارید تا از نام ساخته شود.</div>
+                    <ValidationMessage For="() => input.Slug" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">کد کالا (SKU)</label>
+                    <InputText class="form-control" @bind-Value="input.Sku" dir="ltr" placeholder="AD-SAF-01" />
+                    <ValidationMessage For="() => input.Sku" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">توضیح کوتاه</label>
+                    <InputTextArea class="form-control" @bind-Value="input.ShortDescription" rows="2"
+                                   placeholder="یک یا دو جمله برای کارت محصول" />
+                    <ValidationMessage For="() => input.ShortDescription" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">توضیحات کامل</label>
+                    <InputTextArea class="form-control" @bind-Value="input.Description" rows="5"
+                                   placeholder="جزئیات محصول، نحوهٔ نگهداری، کاربردها…" />
+                    <ValidationMessage For="() => input.Description" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">قیمت (تومان) <span class="text-danger">*</span></label>
+                    <InputNumber class="form-control" @bind-Value="input.PriceTomans" min="1" />
+                    <ValidationMessage For="() => input.PriceTomans" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">قیمت با تخفیف (تومان)</label>
+                    <InputNumber class="form-control" @bind-Value="input.DiscountPriceTomans" min="1" />
+                    <ValidationMessage For="() => input.DiscountPriceTomans" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">واحد فروش <span class="text-danger">*</span></label>
+                    <InputText class="form-control" @bind-Value="input.Unit" placeholder="۱۰۰ گرم" />
+                    <ValidationMessage For="() => input.Unit" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">موجودی</label>
+                    <InputNumber class="form-control" @bind-Value="input.StockQuantity" min="0" />
+                    <ValidationMessage For="() => input.StockQuantity" />
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">نشانی تصویر</label>
+                    <InputText class="form-control" @bind-Value="input.ImageUrl" dir="ltr"
+                               placeholder="/images/store/products/saffron.jpg" />
+                    <ValidationMessage For="() => input.ImageUrl" />
+                </div>
+
+                <div class="col-12">
+                    <div class="form-check form-switch d-inline-flex align-items-center gap-2 me-4">
+                        <InputCheckbox class="form-check-input" @bind-Value="input.IsActive" id="isActive" />
+                        <label class="form-check-label" for="isActive">فعال (در فروشگاه نمایش داده شود)</label>
+                    </div>
+                    <div class="form-check form-switch d-inline-flex align-items-center gap-2">
+                        <InputCheckbox class="form-check-input" @bind-Value="input.IsFeatured" id="isFeatured" />
+                        <label class="form-check-label" for="isFeatured">محصول ویژه (نمایش در بخش پیشنهادها)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary" disabled="@saving">
+                    @if (saving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                    }
+                    ذخیرهٔ محصول
+                </button>
+                <a href="/admin/store/products" class="btn btn-outline-secondary">انصراف</a>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private IReadOnlyList<StoreCategory> categories = [];
+    private ProductAdminInput? input;
+    private bool loading = true;
+    private bool notFound;
+    private bool saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await Admin.GetCategoriesAsync();
+
+        if (Id == 0)
+        {
+            input = new ProductAdminInput
+            {
+                CategoryId = categories.FirstOrDefault()?.Id ?? 0
+            };
+        }
+        else
+        {
+            input = await Admin.GetProductInputAsync(Id);
+            notFound = input is null;
+        }
+
+        loading = false;
+    }
+
+    private Task SaveAsync() => RunSafe(async () =>
+    {
+        if (input is null) return;
+
+        saving = true;
+        try
+        {
+            await Admin.SaveProductAsync(input);
+            Toast.ShowSuccess(Id == 0 ? "محصول ثبت شد." : "تغییرات محصول ذخیره شد.");
+            var message = Id == 0 ? "محصول با موفقیت ثبت شد." : "تغییرات محصول ذخیره شد.";
+            Nav.NavigateTo($"/admin/store/products?success={Uri.EscapeDataString(message)}");
+        }
+        finally
+        {
+            saving = false;
+        }
+    });
+}

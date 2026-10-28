@@ -1,0 +1,90 @@
+@inject CartState Cart
+
+<article class="st-card @(Product.InStock ? "" : "is-out")">
+    <a class="st-card-media" href="@($"/product/{Product.Slug}")">
+        <img src="@ImageUrl" alt="@Product.Name" loading="lazy" />
+        <div class="st-card-badges">
+            @if (Product.DiscountPercent > 0)
+            {
+                <span class="st-badge hot">@StoreText.PersianDigits(Product.DiscountPercent.ToString())٪ تخفیف</span>
+            }
+            @if (Product.IsFeatured)
+            {
+                <span class="st-badge">ویژه</span>
+            }
+        </div>
+        @if (!Product.InStock)
+        {
+            <span class="st-out-badge">ناموجود</span>
+        }
+    </a>
+
+    <div class="st-card-body">
+        <span class="st-card-cat">@(Product.Category?.Name ?? "ادویه‌چین")</span>
+        <a class="st-card-title" href="@($"/product/{Product.Slug}")">@Product.Name</a>
+
+        <div class="st-card-rating">
+            <i class="bi bi-star-fill"></i>
+            <strong>@StoreText.PersianDigits(Product.Rating.ToString("0.0"))</strong>
+            <span>(@StoreText.PersianDigits(Product.ReviewCount.ToString()) نظر)</span>
+        </div>
+
+        <div class="st-card-price">
+            <div>
+                @if (Product.IsOnSale)
+                {
+                    <span class="st-price-old">@StoreText.Price(Product.PriceTomans)</span>
+                }
+                <span class="st-price-now">
+                    @StoreText.Price(Product.EffectivePriceTomans)
+                    <small>/ @Product.Unit</small>
+                </span>
+            </div>
+
+            <button class="st-add-btn @(added ? "is-done" : "")"
+                    type="button"
+                    disabled="@(!Product.InStock || adding)"
+                    title="@(Product.InStock ? "افزودن به سبد خرید" : "ناموجود")"
+                    aria-label="افزودن به سبد خرید"
+                    @onclick="AddAsync">
+                @if (adding)
+                {
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <i class="bi @(added ? "bi-check-lg" : "bi-bag-plus")"></i>
+                }
+            </button>
+        </div>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired]
+    public StoreProduct Product { get; set; } = default!;
+
+    private bool adding;
+    private bool added;
+
+    private string ImageUrl =>
+        string.IsNullOrWhiteSpace(Product.ImageUrl)
+            ? "/images/store/products/saffron.jpg"
+            : Product.ImageUrl;
+
+    private async Task AddAsync()
+    {
+        if (adding || !Product.InStock) return;
+
+        adding = true;
+        try
+        {
+            await Cart.AddAsync(Product);
+            added = true;
+        }
+        finally
+        {
+            adding = false;
+        }
+    }
+}

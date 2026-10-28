@@ -1,0 +1,97 @@
+@page "/my-orders"
+@layout StoreLayout
+@rendermode InteractiveServer
+@using System.Security.Claims
+@inject IStoreOrderService Orders
+@inject AuthenticationStateProvider AuthState
+<PageTitle>سفارش‌های من | ادویه‌چین</PageTitle>
+
+<div class="st-page-head">
+    <div class="st-container">
+        <div class="st-breadcrumb">
+            <a href="/">خانه</a>
+            <i class="bi bi-chevron-left"></i>
+            <span>سفارش‌های من</span>
+        </div>
+        <h1>سفارش‌های من</h1>
+    </div>
+</div>
+
+<div class="st-container">
+    @if (!initialized)
+    {
+        <div class="st-empty"><i class="bi bi-arrow-repeat"></i><p>در حال بارگذاری…</p></div>
+    }
+    else if (!isAuthenticated)
+    {
+        <div class="st-login-prompt">
+            <i class="bi bi-person-lock"></i>
+            <h2>برای دیدن سفارش‌ها وارد شوید</h2>
+            <p>با شمارهٔ موبایل خود وارد شوید تا تاریخچهٔ سفارش‌ها را ببینید.</p>
+            <a class="st-btn" href="/login">ورود به حساب <i class="bi bi-arrow-left"></i></a>
+        </div>
+    }
+    else if (orders.Count == 0)
+    {
+        <div class="st-empty" style="padding-block:4rem;">
+            <i class="bi bi-receipt-cutoff"></i>
+            <h3>هنوز سفارشی ثبت نکرده‌اید</h3>
+            <p>اولین سفارش خود را از فروشگاه ثبت کنید.</p>
+            <a class="st-btn" href="/shop">رفتن به فروشگاه</a>
+        </div>
+    }
+    else
+    {
+        <div class="st-orders">
+            @foreach (var order in orders)
+            {
+                <article class="st-order-card">
+                    <div class="st-order-card-main">
+                        <span class="st-order-number">@order.OrderNumber</span>
+                        <span class="st-order-date">
+                            @order.CreatedAt.ToPersianDateTime() · @StoreText.PersianDigits(order.Items.Count.ToString()) قلم کالا
+                        </span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                        <span class="st-status @StatusClass(order.Status)">@order.Status.ToPersian()</span>
+                        <strong style="font-size:.9rem; color:var(--st-primary-dark);">@StoreText.Price(order.TotalTomans)</strong>
+                        <a class="st-btn st-btn-ghost st-btn-sm" href="@($"/order/{order.OrderNumber}")">جزئیات</a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<StoreOrder> orders = [];
+    private bool initialized;
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState.GetAuthenticationStateAsync()).User;
+        isAuthenticated = user.Identity?.IsAuthenticated == true;
+
+        if (isAuthenticated)
+        {
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                orders = await Orders.GetForUserAsync(userId);
+            }
+        }
+
+        initialized = true;
+    }
+
+    private static string StatusClass(StoreOrderStatus status) => status switch
+    {
+        StoreOrderStatus.PendingPayment => "pending",
+        StoreOrderStatus.Processing => "processing",
+        StoreOrderStatus.Paid => "paid",
+        StoreOrderStatus.Shipped => "shipped",
+        StoreOrderStatus.Delivered => "delivered",
+        _ => "cancelled"
+    };
+}

@@ -1,0 +1,221 @@
+@page "/shop"
+@layout StoreLayout
+@rendermode InteractiveServer
+@inject IStoreCatalogService Catalog
+@inject NavigationManager Nav
+<PageTitle>فروشگاه ادویه و خواربار | ادویه‌چین</PageTitle>
+
+<div class="st-page-head">
+    <div class="st-container">
+        <div class="st-breadcrumb">
+            <a href="/">خانه</a>
+            <i class="bi bi-chevron-left"></i>
+            <a href="/shop">فروشگاه</a>
+            @if (!string.IsNullOrWhiteSpace(Category))
+            {
+                <i class="bi bi-chevron-left"></i>
+                <span>@(activeCategory?.Name ?? Category)</span>
+            }
+        </div>
+        <h1>@(activeCategory?.Name ?? "همهٔ محصولات")</h1>
+        @if (!string.IsNullOrWhiteSpace(activeCategory?.Description))
+        {
+            <p style="font-size:.85rem; color: var(--st-muted); margin-top:.4rem;">@activeCategory.Description</p>
+        }
+    </div>
+</div>
+
+<div class="st-container">
+    <div class="st-shop">
+        <aside class="st-sidebar">
+            <div class="st-filter-group">
+                <div class="st-filter-title"><i class="bi bi-search me-1"></i> جست‌وجو</div>
+                <form action="/shop" method="get" class="d-flex gap-2">
+                    @if (!string.IsNullOrWhiteSpace(Category))
+                    {
+                        <input type="hidden" name="category" value="@Category" />
+                    }
+                    <input type="search" name="q" value="@Q" class="st-field-control"
+                           placeholder="نام محصول…" aria-label="جست‌وجو"
+                           style="border:1.5px solid var(--st-line); border-radius:9px; padding:.5rem .7rem; font-family:inherit; font-size:.8rem; width:100%; background:var(--st-cream);" />
+                    <button type="submit" class="st-btn st-btn-sm" style="padding-inline: 1rem;"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+
+            <div class="st-filter-group">
+                <div class="st-filter-title">دسته‌بندی‌ها</div>
+                <ul class="st-filter-list">
+                    <li>
+                        <a class="@(string.IsNullOrWhiteSpace(Category) ? "is-active" : "")"
+                           href="@ShopUrl(null, Sort, 1, Q)">
+                            <span>همهٔ محصولات</span>
+                            <i class="bi bi-chevron-left" style="font-size:.65rem;"></i>
+                        </a>
+                    </li>
+                    @foreach (var category in categories)
+                    {
+                        <li>
+                            <a class="@(Category == category.Slug ? "is-active" : "")"
+                               href="@ShopUrl(category.Slug, Sort, 1, Q)">
+                                <span>@category.Name</span>
+                                <i class="bi bi-chevron-left" style="font-size:.65rem;"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="st-filter-group">
+                <div class="st-filter-title">مزیت خرید از ما</div>
+                <ul class="st-info-list" style="font-size:.76rem;">
+                    <li style="display:flex; gap:.45rem; margin-bottom:.55rem;"><i class="bi bi-truck"></i> ارسال رایگان بالای ۵۰۰ هزار تومان</li>
+                    <li style="display:flex; gap:.45rem; margin-bottom:.55rem;"><i class="bi bi-shield-check"></i> تضمین تازگی و اصالت</li>
+                    <li style="display:flex; gap:.45rem;"><i class="bi bi-cash-coin"></i> پرداخت در محل</li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="st-shop-main">
+            <div class="st-shop-toolbar">
+                <span>
+                    @if (result is not null)
+                    {
+                        <text>@StoreText.PersianDigits(result.TotalCount.ToString()) محصول یافت شد</text>
+                    }
+                    else
+                    {
+                        <text>در حال بارگذاری…</text>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Q))
+                    {
+                        <text> برای «@Q»</text>
+                    }
+                </span>
+                <label class="st-sort">
+                    <span>مرتب‌سازی:</span>
+                    <select value="@(Sort ?? "")" @onchange="OnSortChanged">
+                        <option value="">پیشنهاد ما</option>
+                        <option value="newest">جدیدترین</option>
+                        <option value="price-asc">ارزان‌ترین</option>
+                        <option value="price-desc">گران‌ترین</option>
+                        <option value="discount">تخفیف‌دار</option>
+                    </select>
+                </label>
+            </div>
+
+            @if (result is null)
+            {
+                <div class="st-empty">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <p>در حال بارگذاری محصولات…</p>
+                </div>
+            }
+            else if (result.Items.Count == 0)
+            {
+                <div class="st-empty">
+                    <i class="bi bi-search"></i>
+                    <h3>محصولی پیدا نشد</h3>
+                    <p>فیلترها را تغییر دهید یا همهٔ محصولات را ببینید.</p>
+                    <a class="st-btn st-btn-sm" href="/shop">مشاهدهٔ همهٔ محصولات</a>
+                </div>
+            }
+            else
+            {
+                <div class="st-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+                    @foreach (var product in result.Items)
+                    {
+                        <ProductCard Product="product" />
+                    }
+                </div>
+
+                @if (totalPages > 1)
+                {
+                    <nav class="st-pager" aria-label="صفحه‌بندی">
+                        <a class="@(Page <= 1 ? "is-disabled" : "")" href="@ShopUrl(Category, Sort, Page - 1, Q)" aria-label="قبلی">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        @foreach (var p in PageNumbers())
+                        {
+                            <a class="@(p == Page ? "is-active" : "")" href="@ShopUrl(Category, Sort, p, Q)">@StoreText.PersianDigits(p.ToString())</a>
+                        }
+                        <a class="@(Page >= totalPages ? "is-disabled" : "")" href="@ShopUrl(Category, Sort, Page + 1, Q)" aria-label="بعدی">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Q { get; set; }
+
+    [SupplyParameterFromQuery(Name = "category")]
+    public string? Category { get; set; }
+
+    [SupplyParameterFromQuery(Name = "sort")]
+    public string? Sort { get; set; }
+
+    [SupplyParameterFromQuery(Name = "page")]
+    public int Page { get; set; } = 1;
+
+    private IReadOnlyList<StoreCategory> categories = [];
+    private StoreCategory? activeCategory;
+    private PagedResult<StoreProduct>? result;
+    private int totalPages;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Page < 1) Page = 1;
+        if (!string.IsNullOrWhiteSpace(Category))
+        {
+            activeCategory = await Catalog.GetCategoryAsync(Category);
+        }
+        else
+        {
+            activeCategory = null;
+        }
+
+        if (categories.Count == 0)
+        {
+            categories = await Catalog.GetCategoriesAsync();
+        }
+
+        result = await Catalog.GetProductsAsync(new StoreQuery
+        {
+            Category = Category,
+            Search = Q,
+            Sort = Sort,
+            Page = Page,
+            PageSize = 9
+        });
+
+        totalPages = (int)Math.Ceiling(result.TotalCount / (double)result.PageSize);
+    }
+
+    private void OnSortChanged(ChangeEventArgs args)
+    {
+        var sort = args.Value?.ToString();
+        Nav.NavigateTo(ShopUrl(Category, string.IsNullOrWhiteSpace(sort) ? null : sort, 1, Q));
+    }
+
+    private IEnumerable<int> PageNumbers()
+    {
+        var start = Math.Max(1, Page - 2);
+        var end = Math.Min(totalPages, start + 4);
+        start = Math.Max(1, end - 4);
+        for (var i = start; i <= end; i++) yield return i;
+    }
+
+    private static string ShopUrl(string? category, string? sort, int page, string? search)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(category)) query.Add($"category={Uri.EscapeDataString(category)}");
+        if (!string.IsNullOrWhiteSpace(sort)) query.Add($"sort={Uri.EscapeDataString(sort)}");
+        if (!string.IsNullOrWhiteSpace(search)) query.Add($"q={Uri.EscapeDataString(search)}");
+        if (page > 1) query.Add($"page={page}");
+        return query.Count == 0 ? "/shop" : "/shop?" + string.Join("&", query);
+    }
+}
