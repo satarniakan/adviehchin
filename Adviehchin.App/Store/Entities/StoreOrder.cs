@@ -52,7 +52,15 @@ public class StoreOrderItem : AuditableEntity
     public StoreOrder? Order { get; set; }
 
     public int? ProductId { get; set; }
+
+    /// <summary>گزینهٔ فروخته‌شده؛ null برای محصول ساده.</summary>
+    public int? VariantId { get; set; }
+
     public string ProductName { get; set; } = string.Empty;
+
+    /// <summary>عنوان گزینه در لحظهٔ ثبت، مثل «سلفون / ۱۰۰ گرم».</summary>
+    public string? VariantTitle { get; set; }
+
     public string Unit { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public long UnitPriceTomans { get; set; }

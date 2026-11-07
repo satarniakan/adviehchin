@@ -123,12 +123,12 @@
     }
 
     private Task ChangeAsync(CartLine line, int delta) =>
-        RunSafe(() => CartStore.SetQuantityAsync(line.ProductId, line.Quantity + delta));
+        RunSafe(() => CartStore.SetQuantityAsync(line.ProductId, line.VariantId, line.Quantity + delta));
 
     private Task RemoveAsync(CartLine line) =>
         RunSafe(async () =>
         {
-            await CartStore.RemoveAsync(line.ProductId);
+            await CartStore.RemoveAsync(line.ProductId, line.VariantId);
             Toast.ShowInfo("محصول از سبد خرید حذف شد.");
         });
 }

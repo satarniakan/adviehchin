@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Adviehchin.Application.Jobs;
 using Adviehchin.Domain.Identity;
 using Adviehchin.Domain.Interfaces;
 using Adviehchin.Infrastructure.Data;
@@ -7,6 +8,7 @@ using Adviehchin.App.Components.Layout;
 using Adviehchin.App.Store;
 using Adviehchin.App.Store.Data;
 using Adviehchin.App.Store.Services;
+using Adviehchin.App.Store.Sync;
 
 namespace Adviehchin.App;
 
@@ -133,6 +135,21 @@ public static class AppSetup
         services.AddScoped<IStoreOrderService, StoreOrderService>();
         services.AddScoped<IStoreAdminService, StoreAdminService>();
         services.AddScoped<CartState>();
+
+        // همگام‌سازی کاتالوگ با سایت منبع (سراسری: اجرای هم‌زمان نباید رخ دهد)
+        services.AddHttpClient(StoreCatalogSourceClient.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri(StoreCatalogSourceClient.DefaultBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("AdviehchinCatalogSync/1.0");
+            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("fa-IR,fa;q=0.9");
+        });
+        services.AddSingleton<IStoreCatalogSourceClient, StoreCatalogSourceClient>();
+        services.AddSingleton<IStoreCatalogSyncService, StoreCatalogSyncService>();
+
+        // همگام‌سازی هر ۱۲ ساعت؛ اولین اجرا بلافاصله پس از استارتاپ
+        services.AddSingleton<IRecurringJob, StoreCatalogSyncJob>();
+
         return services;
     }
 }

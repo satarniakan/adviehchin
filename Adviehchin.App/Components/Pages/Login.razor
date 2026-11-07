@@ -11,7 +11,14 @@
 
         @if (Error is not null)
         {
-            <div class="alert alert-danger">@(Error == "captcha" ? "اعتبارسنجی امنیتی ناموفق بود؛ دوباره تلاش کنید." : "شماره موبایل معتبر نیست.")</div>
+            <div class="alert alert-danger">
+                @(Error switch
+                {
+                    "captcha" => "اعتبارسنجی امنیتی ناموفق بود؛ دوباره تلاش کنید.",
+                    "session" => "نشست شما منقضی شده است؛ لطفاً دوباره تلاش کنید.",
+                    _ => "شماره موبایل معتبر نیست."
+                })
+            </div>
         }
 
         <form method="post" action="/Account/RequestOtp" data-enhance="false">

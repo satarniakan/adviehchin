@@ -57,6 +57,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
 
             var products = db.Set<StoreProduct>().AsNoTracking()
                 .Include(p => p.Category)
+                .Include(p => p.Variants.Where(v => v.IsActive))
                 .Where(p => p.IsActive && p.Category!.IsActive);
 
             if (!string.IsNullOrWhiteSpace(query.Category))
@@ -97,6 +98,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
         WithDbAsync(db => db.Set<StoreProduct>().AsNoTracking()
             .Include(p => p.Category)
             .Include(p => p.Images.OrderBy(i => i.SortOrder))
+            .Include(p => p.Variants.Where(v => v.IsActive).OrderBy(v => v.SortOrder))
             .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive));
 
     public Task<StoreProduct?> GetProductByIdAsync(int id) =>
@@ -108,6 +110,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
         WithDbAsync<IReadOnlyList<StoreProduct>>(async db =>
             await db.Set<StoreProduct>().AsNoTracking()
                 .Include(p => p.Category)
+                .Include(p => p.Variants.Where(v => v.IsActive))
                 .Where(p => p.IsActive && p.IsFeatured)
                 .OrderByDescending(p => p.Id)
                 .Take(take)
@@ -117,6 +120,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
         WithDbAsync<IReadOnlyList<StoreProduct>>(async db =>
             await db.Set<StoreProduct>().AsNoTracking()
                 .Include(p => p.Category)
+                .Include(p => p.Variants.Where(v => v.IsActive))
                 .Where(p => p.IsActive && p.DiscountPriceTomans != null
                             && p.DiscountPriceTomans > 0 && p.DiscountPriceTomans < p.PriceTomans)
                 .OrderByDescending(p => p.Id)
@@ -127,6 +131,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
         WithDbAsync<IReadOnlyList<StoreProduct>>(async db =>
             await db.Set<StoreProduct>().AsNoTracking()
                 .Include(p => p.Category)
+                .Include(p => p.Variants.Where(v => v.IsActive))
                 .Where(p => p.IsActive && p.Category!.Slug == categorySlug)
                 .OrderByDescending(p => p.IsFeatured).ThenByDescending(p => p.Id)
                 .Take(take)
@@ -136,6 +141,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
         WithDbAsync<IReadOnlyList<StoreProduct>>(async db =>
             await db.Set<StoreProduct>().AsNoTracking()
                 .Include(p => p.Category)
+                .Include(p => p.Variants.Where(v => v.IsActive))
                 .Where(p => p.IsActive && p.CategoryId == categoryId && p.Id != excludeProductId)
                 .OrderByDescending(p => p.IsFeatured).ThenByDescending(p => p.Id)
                 .Take(take)

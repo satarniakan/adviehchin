@@ -42,6 +42,9 @@ namespace Adviehchin.App.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<long?>("ExternalId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -75,6 +78,10 @@ namespace Adviehchin.App.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("[ExternalId] IS NOT NULL");
 
                     b.HasIndex("IsDeleted");
 
@@ -245,6 +252,13 @@ namespace Adviehchin.App.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VariantTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted");
@@ -252,6 +266,8 @@ namespace Adviehchin.App.Migrations
                     b.HasIndex("OrderId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("StoreOrderItems", (string)null);
                 });
@@ -280,6 +296,9 @@ namespace Adviehchin.App.Migrations
                         .HasColumnType("nvarchar(4000)");
 
                     b.Property<long?>("DiscountPriceTomans")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ExternalId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("ImageUrl")
@@ -343,6 +362,10 @@ namespace Adviehchin.App.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("[ExternalId] IS NOT NULL");
+
                     b.HasIndex("IsDeleted");
 
                     b.HasIndex("IsFeatured");
@@ -405,6 +428,83 @@ namespace Adviehchin.App.Migrations
                     b.HasIndex("ProductId", "SortOrder");
 
                     b.ToTable("StoreProductImages", (string)null);
+                });
+
+            modelBuilder.Entity("Adviehchin.App.Store.Entities.StoreProductVariant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<long?>("DiscountPriceTomans")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExternalId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("OptionsJson")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<long>("PriceTomans")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StockQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique();
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("ProductId", "IsActive");
+
+                    b.HasIndex("ProductId", "SortOrder");
+
+                    b.ToTable("StoreProductVariants", (string)null);
                 });
 
             modelBuilder.Entity("Adviehchin.Domain.Entities.LoginHistory", b =>
@@ -1039,6 +1139,11 @@ namespace Adviehchin.App.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Adviehchin.App.Store.Entities.StoreProductVariant", null)
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Order");
                 });
 
@@ -1057,6 +1162,17 @@ namespace Adviehchin.App.Migrations
                 {
                     b.HasOne("Adviehchin.App.Store.Entities.StoreProduct", "Product")
                         .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Adviehchin.App.Store.Entities.StoreProductVariant", b =>
+                {
+                    b.HasOne("Adviehchin.App.Store.Entities.StoreProduct", "Product")
+                        .WithMany("Variants")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1128,6 +1244,8 @@ namespace Adviehchin.App.Migrations
             modelBuilder.Entity("Adviehchin.App.Store.Entities.StoreProduct", b =>
                 {
                     b.Navigation("Images");
+
+                    b.Navigation("Variants");
                 });
 #pragma warning restore 612, 618
         }

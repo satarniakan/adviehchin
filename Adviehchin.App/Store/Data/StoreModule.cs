@@ -19,6 +19,7 @@ public sealed class StoreModule : IAdviehchinModule
             e.Property(x => x.Description).HasMaxLength(2000);
             e.Property(x => x.ImageUrl).HasMaxLength(500);
             e.HasIndex(x => x.Slug).IsUnique();
+            e.HasIndex(x => x.ExternalId).IsUnique().HasFilter("[ExternalId] IS NOT NULL");
             e.HasIndex(x => new { x.IsActive, x.SortOrder });
             e.HasMany(x => x.Products)
                 .WithOne(x => x.Category)
@@ -38,12 +39,28 @@ public sealed class StoreModule : IAdviehchinModule
             e.Property(x => x.ImageUrl).HasMaxLength(500);
             e.HasIndex(x => x.Slug).IsUnique();
             e.HasIndex(x => x.Sku).IsUnique().HasFilter("[Sku] IS NOT NULL");
+            e.HasIndex(x => x.ExternalId).IsUnique().HasFilter("[ExternalId] IS NOT NULL");
             e.HasIndex(x => new { x.IsActive, x.CategoryId });
             e.HasIndex(x => x.IsFeatured);
             e.HasMany(x => x.Images)
                 .WithOne(x => x.Product)
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Variants)
+                .WithOne(x => x.Product)
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<StoreProductVariant>(e =>
+        {
+            e.ToTable("StoreProductVariants");
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.OptionsJson).HasMaxLength(1000).IsRequired();
+            e.Property(x => x.Sku).HasMaxLength(64);
+            e.HasIndex(x => x.ExternalId).IsUnique();
+            e.HasIndex(x => new { x.ProductId, x.SortOrder });
+            e.HasIndex(x => new { x.ProductId, x.IsActive });
         });
 
         builder.Entity<StoreProductImage>(e =>
@@ -78,13 +95,21 @@ public sealed class StoreModule : IAdviehchinModule
         {
             e.ToTable("StoreOrderItems");
             e.Property(x => x.ProductName).HasMaxLength(200).IsRequired();
+            e.Property(x => x.VariantTitle).HasMaxLength(200);
             e.Property(x => x.Unit).HasMaxLength(50).IsRequired();
             e.Property(x => x.ImageUrl).HasMaxLength(500);
             e.HasIndex(x => x.OrderId);
+            e.HasIndex(x => x.VariantId);
             e.HasOne<StoreProduct>()
                 .WithMany()
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne<StoreProductVariant>()
+                .WithMany()
+                .HasForeignKey(x => x.VariantId)
+                // SetNull اینجا مجاز نیست: محصول→گزینه cascade است و آیتم سفارش هم از
+                // محصول SetNull می‌گیرد؛ SQL Server دو مسیر آبشاری را رد می‌کند.
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

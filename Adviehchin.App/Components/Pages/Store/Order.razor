@@ -54,7 +54,7 @@
                             </span>
                             <div>
                                 <div class="st-order-item-name">@item.ProductName</div>
-                                <div class="st-order-item-meta">@item.Unit · @StoreText.PersianDigits(item.Quantity.ToString()) عدد</div>
+                                <div class="st-order-item-meta">@(item.VariantTitle ?? item.Unit) · @StoreText.PersianDigits(item.Quantity.ToString()) عدد</div>
                             </div>
                             <span class="st-order-item-price">@StoreText.Price(item.LineTotalTomans)</span>
                         </div>

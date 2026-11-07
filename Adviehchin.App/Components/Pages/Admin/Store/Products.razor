@@ -2,7 +2,9 @@
 @rendermode InteractiveServer
 @attribute [Authorize(Policy = StorePermissions.Products)]
 @inherits AppComponentBase
+@using Adviehchin.App.Store.Sync
 @inject IStoreAdminService Admin
+@inject IStoreCatalogSyncService CatalogSync
 <PageTitle>مدیریت محصولات</PageTitle>
 
 @if (!string.IsNullOrWhiteSpace(Success))
@@ -10,14 +12,37 @@
     <div class="alert alert-success">@Success</div>
 }
 
+@if (!string.IsNullOrWhiteSpace(syncSummary))
+{
+    <div class="alert alert-info d-flex align-items-start gap-2">
+        <i class="bi bi-arrow-repeat mt-1"></i>
+        <div class="flex-grow-1">@syncSummary</div>
+        <button type="button" class="btn-close" aria-label="بستن" @onclick="() => syncSummary = null"></button>
+    </div>
+}
+
 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
     <div>
         <h3 class="mb-1">محصولات فروشگاه</h3>
         <div class="text-body-secondary small">افزودن، ویرایش و حذف محصولات؛ قیمت‌ها به تومان</div>
     </div>
-    <a href="/admin/store/products/add" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i> محصول جدید
-    </a>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="SyncCatalogAsync" disabled="@syncing">
+            @if (syncing)
+            {
+                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                <span>در حال همگام‌سازی…</span>
+            }
+            else
+            {
+                <i class="bi bi-arrow-repeat me-1"></i>
+                <span>همگام‌سازی با سایت منبع</span>
+            }
+        </button>
+        <a href="/admin/store/products/add" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> محصول جدید
+        </a>
+    </div>
 </div>
 
 <div class="card-panel mb-3">
@@ -142,8 +167,56 @@
     private int currentPage = 1;
     private const int PageSize = 15;
     private AppConfirmDialog confirmDialog = default!;
+    private bool syncing;
+    private string? syncSummary;
 
     protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task SyncCatalogAsync()
+    {
+        if (syncing) return;
+
+        syncing = true;
+        syncSummary = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await CatalogSync.SyncAsync();
+            syncSummary = BuildSyncSummary(result);
+            currentPage = 1;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.ShowError(ErrorMessageHelper.ToUserMessage(ex));
+        }
+        finally
+        {
+            syncing = false;
+        }
+    }
+
+    private static string BuildSyncSummary(StoreCatalogSyncResult r)
+    {
+        var summary =
+            $"همگام‌سازی در {StoreText.PersianDigits(r.Duration.TotalSeconds.ToString("0"))} ثانیه انجام شد — " +
+            $"محصولات: {StoreText.PersianDigits(r.ProductsCreated.ToString())} جدید، " +
+            $"{StoreText.PersianDigits(r.ProductsUpdated.ToString())} به‌روز، " +
+            $"{StoreText.PersianDigits(r.ProductsDeactivated.ToString())} غیرفعال · " +
+            $"دسته‌ها: {StoreText.PersianDigits(r.CategoriesCreated.ToString())} جدید، " +
+            $"{StoreText.PersianDigits(r.CategoriesUpdated.ToString())} به‌روز · " +
+            $"گزینه‌ها: {StoreText.PersianDigits(r.VariantsCreated.ToString())} جدید، " +
+            $"{StoreText.PersianDigits(r.VariantsUpdated.ToString())} به‌روز";
+
+        if (r.SkippedProducts > 0)
+            summary += $" · {StoreText.PersianDigits(r.SkippedProducts.ToString())} محصول با گزینهٔ ناخوانا رد شد";
+
+        if (r.HasWarnings)
+            summary += $" · {StoreText.PersianDigits(r.Warnings.Count.ToString())} هشدار (جزئیات در لاگ)";
+
+        return summary;
+    }
 
     private async Task LoadAsync()
     {

@@ -8,8 +8,14 @@ namespace Adviehchin.App.Store.Models;
 public class CartLine
 {
     public int ProductId { get; set; }
+
+    /// <summary>گزینهٔ انتخاب‌شده؛ null برای محصول ساده.</summary>
+    public int? VariantId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
+
+    /// <summary>برای محصول چندگزینه‌ای، عنوان گزینه (مثل «سلفون / ۱۰۰ گرم»).</summary>
     public string Unit { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public long UnitPriceTomans { get; set; }

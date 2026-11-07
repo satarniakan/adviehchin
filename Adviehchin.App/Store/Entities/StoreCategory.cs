@@ -5,6 +5,9 @@ namespace Adviehchin.App.Store.Entities;
 /// <summary>دستهٔ محصولات فروشگاه (ادویه، سبزی خشک، ...).</summary>
 public class StoreCategory : AuditableEntity
 {
+    /// <summary>شناسهٔ دسته در منبع همگام‌سازی؛ null یعنی رکورد محلی/دستی.</summary>
+    public long? ExternalId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string? Description { get; set; }

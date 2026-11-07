@@ -103,6 +103,22 @@ app.UseStatusCodePagesWithReExecute("/not-found", "?from={0}");
 
 // Antiforgery به هویت کاربر نیاز دارد، پس باید بعد از Authentication/Authorization بیاید
 app.UseAuthentication();
+
+// کاربرِ واردشده نباید فرم ورود را ببیند: فرمِ قدیمیِ کش‌شده توکن ضدجعلِ کاربرِ
+// قبلی/ناشناس را می‌فرستد و خطای ۵۰۰ می‌دهد. او را به خانه برمی‌گردانیم.
+app.Use(async (context, next) =>
+{
+    if (HttpMethods.IsGet(context.Request.Method) &&
+        context.User.Identity?.IsAuthenticated == true &&
+        (context.Request.Path == "/login" || context.Request.Path == "/login-password"))
+    {
+        context.Response.Redirect("/");
+        return;
+    }
+
+    await next();
+});
+
 app.UseAuthorization();
 app.UseAntiforgery();
 app.UseRateLimiter();

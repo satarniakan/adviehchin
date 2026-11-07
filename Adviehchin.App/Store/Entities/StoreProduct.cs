@@ -5,6 +5,9 @@ namespace Adviehchin.App.Store.Entities;
 /// <summary>محصول قابل فروش. قیمت‌ها به تومان ذخیره می‌شوند.</summary>
 public class StoreProduct : AuditableEntity
 {
+    /// <summary>شناسهٔ محصول در منبع همگام‌سازی؛ null یعنی رکورد محلی/دستی.</summary>
+    public long? ExternalId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string? ShortDescription { get; set; }
@@ -31,6 +34,7 @@ public class StoreProduct : AuditableEntity
     public int ReviewCount { get; set; }
 
     public ICollection<StoreProductImage> Images { get; set; } = new List<StoreProductImage>();
+    public ICollection<StoreProductVariant> Variants { get; set; } = new List<StoreProductVariant>();
 
     public bool IsOnSale => DiscountPriceTomans is > 0 && DiscountPriceTomans < PriceTomans;
     public long EffectivePriceTomans => IsOnSale ? DiscountPriceTomans!.Value : PriceTomans;

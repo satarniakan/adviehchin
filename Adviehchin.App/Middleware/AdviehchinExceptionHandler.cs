@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -34,8 +35,27 @@ public static class AdviehchinExceptionHandler
     /// </summary>
     public static ExceptionTranslation Translate(Exception? exception)
     {
+        // توکنِ کهنهٔ فرم (نشست عوض شده یا کاربر وارد شده) خطای برنامه نیست؛
+        // کاربر باید فرم تازه بگیرد، نه صفحهٔ ۵۰۰.
+        if (IsAntiforgeryFailure(exception))
+            return new(400, "نشست شما منقضی شده است؛ لطفاً دوباره وارد شوید.", IsExpected: true);
+
         var translation = ExceptionTranslator.Translate(exception);
         return new(translation.StatusCode, translation.Message, translation.IsExpected);
+    }
+
+    /// <summary>
+    /// خطای ضدجعل (CSRF) ممکن است مستقیم یا داخل <see cref="BadHttpRequestException"/>
+    /// (هنگام خواندن فرم) برسد؛ هر دو حالت یکسان رفتار می‌کنند.
+    /// </summary>
+    private static bool IsAntiforgeryFailure(Exception? exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is AntiforgeryValidationException) return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -69,6 +89,16 @@ public static class AdviehchinExceptionHandler
             // صفحهٔ HTML ← هدایت به صفحهٔ خطای پایه (پیام فارسی همان‌جا نمایش داده می‌شود)
             if (WantsHtml(context.Request))
             {
+                if (IsAntiforgeryFailure(exception))
+                {
+                    // کاربرِ واردشده فقط فرمِ کش‌شدهٔ قدیمی را فرستاده؛ به خانه برمی‌گردد.
+                    // مهمان به فرم ورود با پیام «نشست منقضی شد» می‌رود.
+                    context.Response.Redirect(context.User.Identity?.IsAuthenticated == true
+                        ? "/"
+                        : LoginPageFor(context.Request));
+                    return;
+                }
+
                 var encoded = Uri.EscapeDataString(translation.Message);
                 context.Response.Redirect($"/Error?code={translation.StatusCode}&message={encoded}");
                 return;
@@ -87,6 +117,15 @@ public static class AdviehchinExceptionHandler
                     : null
             });
         }));
+
+    /// <summary>
+    /// فرمِ ورودیِ ناموفق به همان صفحهٔ ورودِ مربوطه برمی‌گردد تا کاربر فرم تازه بگیرد.
+    /// </summary>
+    private static string LoginPageFor(HttpRequest request)
+        => request.Path.StartsWithSegments("/Account/RequestOtp") ||
+           request.Path.StartsWithSegments("/Account/VerifyOtp")
+            ? "/login?error=session"
+            : "/login-password?error=session";
 
     /// <summary>
     /// آیا این درخواست از صفحهٔ HTML است؟ آغازگر پیش‌فرض مرورگر <c>*/*</c> است،

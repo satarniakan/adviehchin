@@ -51,6 +51,7 @@ public sealed class StoreOrderService : IStoreOrderService
         {
             var ids = lines.Select(l => l.ProductId).Distinct().ToList();
             var products = await db.Set<StoreProduct>()
+                .Include(p => p.Variants)
                 .Where(p => ids.Contains(p.Id) && p.IsActive)
                 .ToDictionaryAsync(p => p.Id);
 
@@ -65,17 +66,36 @@ public sealed class StoreOrderService : IStoreOrderService
                 if (!products.TryGetValue(line.ProductId, out var product))
                     throw new BusinessRuleException("یکی از محصولات سبد خرید دیگر موجود نیست. لطفاً سبد را بازبینی کنید.");
 
-                if (line.Quantity > product.StockQuantity)
-                    throw new BusinessRuleException($"موجودی «{product.Name}» کافی نیست (حداکثر {product.StockQuantity} عدد).");
+                StoreProductVariant? variant = null;
+                if (line.VariantId is int variantId)
+                {
+                    variant = product.Variants.FirstOrDefault(v => v.Id == variantId && v.IsActive)
+                        ?? throw new BusinessRuleException(
+                            $"گزینهٔ انتخاب‌شده برای «{product.Name}» دیگر موجود نیست. لطفاً دوباره انتخاب کنید.");
+                }
+                else if (product.Variants.Any(v => v.IsActive))
+                {
+                    throw new BusinessRuleException(
+                        $"برای «{product.Name}» ابتدا بسته‌بندی و وزن را انتخاب کنید.");
+                }
 
-                var unitPrice = product.EffectivePriceTomans;
+                var available = variant?.StockQuantity ?? product.StockQuantity;
+                if (line.Quantity > available)
+                {
+                    var label = variant is null ? product.Name : $"{product.Name} – {variant.Title}";
+                    throw new BusinessRuleException($"موجودی «{label}» کافی نیست (حداکثر {available} عدد).");
+                }
+
+                var unitPrice = variant?.EffectivePriceTomans ?? product.EffectivePriceTomans;
                 var lineTotal = unitPrice * line.Quantity;
                 subtotal += lineTotal;
 
                 items.Add(new StoreOrderItem
                 {
                     ProductId = product.Id,
+                    VariantId = variant?.Id,
                     ProductName = product.Name,
+                    VariantTitle = variant?.Title,
                     Unit = product.Unit,
                     ImageUrl = product.ImageUrl,
                     UnitPriceTomans = unitPrice,
@@ -83,7 +103,15 @@ public sealed class StoreOrderService : IStoreOrderService
                     LineTotalTomans = lineTotal
                 });
 
-                product.StockQuantity -= line.Quantity;
+                if (variant is null)
+                {
+                    product.StockQuantity -= line.Quantity;
+                }
+                else
+                {
+                    variant.StockQuantity -= line.Quantity;
+                    product.StockQuantity = AggregateStock(product);
+                }
             }
 
             var shipping = subtotal >= FreeShippingThresholdTomans ? 0 : ShippingCostTomans;
@@ -118,6 +146,17 @@ public sealed class StoreOrderService : IStoreOrderService
 
         return created!;
     }
+
+    /// <summary>
+    /// موجودی نمایشی محصول چندگزینه‌ای = بیشترین موجودی گزینه‌های فعال. عدد تجمیعی
+    /// معنا ندارد چون منبع فقط «موجود/ناموجود» می‌دهد؛ صفر یعنی همهٔ گزینه‌ها تمام شده‌اند.
+    /// </summary>
+    private static int AggregateStock(StoreProduct product) =>
+        product.Variants
+            .Where(v => v.IsActive && v.StockQuantity > 0)
+            .Select(v => v.StockQuantity)
+            .DefaultIfEmpty(0)
+            .Max();
 
     public async Task<StoreOrder?> GetByNumberAsync(string orderNumber)
     {

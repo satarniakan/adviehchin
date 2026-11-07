@@ -64,9 +64,9 @@ else
                     {
                         <span class="st-badge">پیشنهاد ویژه</span>
                     }
-                    @if (product.DiscountPercent > 0)
+                    @if (CurrentDiscountPercent > 0)
                     {
-                        <span class="st-badge hot">@StoreText.PersianDigits(product.DiscountPercent.ToString())٪ تخفیف</span>
+                        <span class="st-badge hot">@StoreText.PersianDigits(CurrentDiscountPercent.ToString())٪ تخفیف</span>
                     }
                 </div>
 
@@ -89,19 +89,45 @@ else
                     <p class="st-product-desc">@product.ShortDescription</p>
                 }
 
+                @if (variants.Count > 0)
+                {
+                    <div class="st-variant-picker">
+                        <div class="st-variant-title">انتخاب بسته‌بندی و وزن</div>
+                        <div class="st-variant-list">
+                            @foreach (var variant in variants)
+                            {
+                                <button type="button"
+                                        class="st-variant-option @(selectedVariant?.Id == variant.Id ? "is-active" : "")"
+                                        disabled="@(!variant.InStock)"
+                                        @onclick="() => SelectVariant(variant)">
+                                    <span class="st-variant-name">@variant.Title</span>
+                                    <span class="st-variant-price">@StoreText.Price(variant.EffectivePriceTomans)</span>
+                                    @if (!variant.InStock)
+                                    {
+                                        <span class="st-variant-out">ناموجود</span>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div class="st-product-price-box">
                     <div>
-                        @if (product.IsOnSale)
+                        @if (CurrentOldPrice is long oldPrice)
                         {
-                            <span class="st-price-old">@StoreText.Price(product.PriceTomans)</span>
+                            <span class="st-price-old">@StoreText.Price(oldPrice)</span>
                         }
                         <div class="st-price-big">
-                            @StoreText.Price(product.EffectivePriceTomans)
-                            <small>/ @product.Unit</small>
+                            @StoreText.Price(CurrentPrice)
+                            @if (selectedVariant is null)
+                            {
+                                <small>/ @product.Unit</small>
+                            }
                         </div>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:.5rem; align-items:flex-end;">
-                        @if (product.InStock)
+                        @if (CurrentInStock)
                         {
                             <span class="st-stock in"><i class="bi bi-check-circle-fill"></i> موجود در انبار</span>
                         }
@@ -109,14 +135,14 @@ else
                         {
                             <span class="st-stock out"><i class="bi bi-x-circle-fill"></i> ناموجود</span>
                         }
-                        @if (product.DiscountPercent > 0)
+                        @if (CurrentDiscountPercent > 0)
                         {
-                            <span class="st-discount-pill">@StoreText.PersianDigits(product.DiscountPercent.ToString())٪ تخفیف</span>
+                            <span class="st-discount-pill">@StoreText.PersianDigits(CurrentDiscountPercent.ToString())٪ تخفیف</span>
                         }
                     </div>
                 </div>
 
-                @if (product.InStock)
+                @if (CurrentInStock)
                 {
                     <div class="st-qty-row">
                         <span style="font-size:.82rem; font-weight:700;">تعداد:</span>
@@ -176,7 +202,7 @@ else
                 <table class="st-spec-table">
                     <tbody>
                         <tr><th>دسته‌بندی</th><td>@(product.Category?.Name ?? "—")</td></tr>
-                        <tr><th>واحد فروش</th><td>@product.Unit</td></tr>
+                        <tr><th>بسته‌بندی و وزن</th><td>@(selectedVariant?.Title ?? product.Unit)</td></tr>
                         <tr><th>کد کالا (SKU)</th><td dir="ltr">@(product.Sku ?? "—")</td></tr>
                         <tr><th>موجودی انبار</th><td>@StoreText.PersianDigits(product.StockQuantity.ToString()) عدد</td></tr>
                         <tr><th>امتیاز کاربران</th><td>@StoreText.PersianDigits(product.Rating.ToString("0.0")) از ۵ (@StoreText.PersianDigits(product.ReviewCount.ToString()) نظر)</td></tr>
@@ -219,23 +245,40 @@ else
 
     private StoreProduct? product;
     private IReadOnlyList<StoreProduct> related = [];
+    private IReadOnlyList<StoreProductVariant> variants = [];
+    private StoreProductVariant? selectedVariant;
     private List<string> gallery = [];
     private string selectedImage = string.Empty;
     private int Quantity = 1;
     private int tab;
     private bool busy;
 
-    private int MaxQuantity => Math.Clamp(product?.StockQuantity ?? 1, 1, 99);
+    private long CurrentPrice => selectedVariant?.EffectivePriceTomans ?? product?.EffectivePriceTomans ?? 0;
+
+    private long? CurrentOldPrice => selectedVariant is { } variant
+        ? (variant.IsOnSale ? variant.PriceTomans : null)
+        : product is { IsOnSale: true } ? product.PriceTomans : null;
+
+    private int CurrentDiscountPercent => selectedVariant?.DiscountPercent ?? product?.DiscountPercent ?? 0;
+
+    private bool CurrentInStock => selectedVariant?.InStock ?? product?.InStock == true;
+
+    private int MaxQuantity => Math.Clamp(selectedVariant?.StockQuantity ?? product?.StockQuantity ?? 1, 1, 99);
 
     protected override async Task OnParametersSetAsync()
     {
         product = await Catalog.GetProductAsync(Slug);
         related = [];
         gallery = [];
+        variants = [];
+        selectedVariant = null;
         Quantity = 1;
         tab = 0;
 
         if (product is null) return;
+
+        variants = product.Variants.OrderBy(v => v.SortOrder).ToList();
+        selectedVariant = variants.FirstOrDefault(v => v.InStock) ?? variants.FirstOrDefault();
 
         gallery.Add(string.IsNullOrWhiteSpace(product.ImageUrl)
             ? "/images/store/products/saffron.jpg"
@@ -250,6 +293,14 @@ else
         {
             related = await Catalog.GetFeaturedAsync(4);
         }
+    }
+
+    private void SelectVariant(StoreProductVariant variant)
+    {
+        if (!variant.InStock) return;
+
+        selectedVariant = variant;
+        Quantity = Math.Clamp(Quantity, 1, Math.Clamp(variant.StockQuantity, 1, 99));
     }
 
     private void Decrease()
@@ -268,7 +319,7 @@ else
         busy = true;
         try
         {
-            await Cart.AddAsync(product, Quantity);
+            await Cart.AddAsync(product, selectedVariant, Quantity);
             Toast.ShowSuccess("محصول به سبد خرید اضافه شد.");
         }
         finally
@@ -283,7 +334,7 @@ else
         busy = true;
         try
         {
-            await Cart.AddAsync(product, Quantity);
+            await Cart.AddAsync(product, selectedVariant, Quantity);
             Nav.NavigateTo("/cart");
         }
         finally

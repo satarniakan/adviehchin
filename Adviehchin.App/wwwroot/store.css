@@ -1,22 +1,22 @@
 /* ==========================================================================
    ادویه‌چین — ظاهر فروشگاه با الهام از قالب Lukani
-   پالت: زیتونی #79A206، کرم #FDFAF2، خاکی #23281A، کهربایی #FFB400
+   پالت: لاجوردیِ کاشیِ لوگو #1A3F97، کرم #FDFAF2، سرمه‌ای #1C2130، زعفرانی #E0930F
    ========================================================================== */
 
 .store-shell {
-    --st-primary: #79a206;
-    --st-primary-dark: #5f8204;
-    --st-primary-soft: #f1f6df;
-    --st-accent: #ffb400;
-    --st-ink: #23261c;
-    --st-muted: #787b6f;
+    --st-primary: #1a3f97;
+    --st-primary-dark: #0f2e73;
+    --st-primary-soft: #e9eefb;
+    --st-accent: #e0930f;
+    --st-ink: #1c2130;
+    --st-muted: #737a8a;
     --st-line: #e9e6dc;
     --st-cream: #fdfaf2;
     --st-blush: #f7eee0;
     --st-white: #ffffff;
-    --st-dark: #23281a;
+    --st-dark: #1c2130;
     --st-radius: 14px;
-    --st-shadow: 0 14px 34px rgba(35, 40, 26, .08);
+    --st-shadow: 0 14px 34px rgba(28, 33, 48, .08);
     color: var(--st-ink);
     background: var(--st-cream);
     font-family: 'Vazirmatn', Tahoma, sans-serif;
@@ -55,7 +55,7 @@
 /* ---------- نوار بالایی ---------- */
 .st-topbar {
     background: var(--st-dark);
-    color: #d9dccb;
+    color: #d5dae6;
     font-size: .8rem;
 }
 
@@ -117,15 +117,10 @@
 }
 
 .st-logo-mark {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: var(--st-primary);
-    color: #fff;
-    font-size: 1.55rem;
-    box-shadow: 0 8px 18px rgba(121, 162, 6, .28);
+    height: 56px;
+    width: auto;
+    display: block;
+    flex: none;
 }
 
 .st-logo-text {
@@ -224,7 +219,7 @@
     padding-inline: 5px;
     border-radius: 999px;
     background: var(--st-accent);
-    color: #23281a;
+    color: #1c2130;
     font-size: .68rem;
     font-weight: 700;
     display: grid;
@@ -238,7 +233,7 @@
     position: sticky;
     top: 0;
     z-index: 1020;
-    box-shadow: 0 6px 18px rgba(35, 40, 26, .08);
+    box-shadow: 0 6px 18px rgba(28, 33, 48, .08);
 }
 
 .st-nav-inner {
@@ -362,7 +357,7 @@
     align-items: center;
     gap: .45rem;
     color: var(--st-primary-dark);
-    background: rgba(121, 162, 6, .12);
+    background: rgba(26, 63, 151, .12);
     border-radius: 999px;
     padding: .35rem .9rem;
     font-size: .75rem;
@@ -377,7 +372,7 @@
 }
 
 .st-hero-copy p {
-    color: #5e6155;
+    color: #5a6073;
     font-size: .95rem;
     line-height: 2;
     max-width: 34rem;
@@ -476,7 +471,7 @@
         height: 9px;
         border-radius: 50%;
         border: 0;
-        background: rgba(35, 40, 26, .25);
+        background: rgba(28, 33, 48, .25);
         padding: 0;
         transition: all .2s;
     }
@@ -503,7 +498,7 @@
     transition: transform .15s ease, background .2s, color .2s, box-shadow .2s;
     background: var(--st-primary);
     color: #fff;
-    box-shadow: 0 10px 22px rgba(121, 162, 6, .25);
+    box-shadow: 0 10px 22px rgba(26, 63, 151, .25);
 }
 
     .st-btn:hover {
@@ -513,7 +508,7 @@
     }
 
     .st-btn:disabled {
-        background: #b9bda9;
+        background: #b8bfd0;
         box-shadow: none;
         cursor: not-allowed;
         transform: none;
@@ -521,11 +516,11 @@
 
 .st-btn-dark {
     background: var(--st-dark);
-    box-shadow: 0 10px 22px rgba(35, 40, 26, .2);
+    box-shadow: 0 10px 22px rgba(28, 33, 48, .2);
 }
 
     .st-btn-dark:hover {
-        background: #14170e;
+        background: #141821;
     }
 
 .st-btn-outline {
@@ -683,7 +678,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(270deg, rgba(35, 40, 26, .62), rgba(35, 40, 26, .05) 72%);
+        background: linear-gradient(270deg, rgba(28, 33, 48, .62), rgba(28, 33, 48, .05) 72%);
     }
 
 .st-banner-copy {
@@ -707,7 +702,7 @@
     }
 
     .st-banner-copy p {
-        color: #e8e6da;
+        color: #e6e9f1;
         font-size: .82rem;
         margin-bottom: .5rem;
     }
@@ -745,7 +740,7 @@
     .st-card:hover {
         box-shadow: var(--st-shadow);
         transform: translateY(-3px);
-        border-color: #dcd8ca;
+        border-color: #dcdee7;
     }
 
 .st-card-media {
@@ -869,7 +864,7 @@
 .st-price-old {
     display: block;
     font-size: .72rem;
-    color: #a4a79a;
+    color: #9fa6b6;
     text-decoration: line-through;
 }
 
@@ -898,8 +893,8 @@
     }
 
     .st-add-btn:disabled {
-        background: #efeee7;
-        color: #b4b7a7;
+        background: #eeeff4;
+        color: #b0b7c7;
         cursor: not-allowed;
     }
 
@@ -1016,7 +1011,7 @@
     .st-quote p {
         font-size: .85rem;
         line-height: 2;
-        color: #5c5f52;
+        color: #575d6f;
     }
 
 .st-quote-author {
@@ -1138,7 +1133,7 @@
 /* ---------- فوتر ---------- */
 .st-footer {
     background: var(--st-dark);
-    color: #c9cdbb;
+    color: #c6cbd8;
     margin-top: auto;
 }
 
@@ -1172,7 +1167,7 @@
     font-size: .8rem;
     line-height: 2;
     margin-block: 1rem 1.3rem;
-    color: #aeb2a1;
+    color: #a8afc0;
 }
 
 .st-logo-footer .st-logo-text strong {
@@ -1180,7 +1175,7 @@
 }
 
 .st-logo-footer .st-logo-text small {
-    color: #9aa08b;
+    color: #98a0b3;
 }
 
 .st-footer ul li {
@@ -1189,7 +1184,7 @@
 
 .st-footer ul a {
     font-size: .82rem;
-    color: #b9beab;
+    color: #b6bccb;
     transition: color .15s;
 }
 
@@ -1203,7 +1198,7 @@
     gap: .5rem;
     font-size: .8rem;
     line-height: 1.8;
-    color: #b9beab;
+    color: #b6bccb;
 }
 
     .st-footer-contact li i {
@@ -1224,7 +1219,7 @@
         display: grid;
         place-items: center;
         background: rgba(255, 255, 255, .07);
-        color: #dfe2d4;
+        color: #dde0e9;
         font-size: 1rem;
         transition: all .18s;
     }
@@ -1245,7 +1240,7 @@
     gap: 1rem;
     padding-block: 1.1rem;
     font-size: .75rem;
-    color: #9aa08b;
+    color: #98a0b3;
     flex-wrap: wrap;
 }
 
@@ -1335,7 +1330,7 @@
     padding: .5rem .65rem;
     border-radius: 8px;
     font-size: .82rem;
-    color: #565a4d;
+    color: #51586b;
     transition: all .15s;
 }
 
@@ -1537,8 +1532,70 @@
 .st-product-desc {
     font-size: .88rem;
     line-height: 2.1;
-    color: #5c5f52;
+    color: #575d6f;
     margin-bottom: 1.4rem;
+}
+
+/* انتخاب بسته‌بندی/وزن در صفحهٔ محصول */
+.st-variant-picker {
+    margin-bottom: 1.2rem;
+}
+
+.st-variant-title {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--st-dark);
+    margin-bottom: .6rem;
+}
+
+.st-variant-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+}
+
+.st-variant-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .2rem;
+    min-width: 135px;
+    padding: .55rem .85rem;
+    border: 1.5px solid var(--st-line);
+    border-radius: 12px;
+    background: #fff;
+    text-align: right;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+    .st-variant-option:hover:not(:disabled) {
+        border-color: var(--st-primary);
+    }
+
+    .st-variant-option.is-active {
+        border-color: var(--st-primary);
+        box-shadow: 0 0 0 3px rgba(26, 63, 151, .15);
+    }
+
+    .st-variant-option:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+.st-variant-name {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--st-dark);
+}
+
+.st-variant-price {
+    font-size: .75rem;
+    color: var(--st-primary-dark);
+}
+
+.st-variant-out {
+    font-size: .68rem;
+    color: #c0452a;
 }
 
 .st-product-price-box {
@@ -1624,7 +1681,7 @@
         }
 
         .st-qty button:disabled {
-            color: #c9cbbf;
+            color: #c5c9d5;
         }
 
     .st-qty span {
@@ -1697,7 +1754,7 @@
 .st-tab-body {
     font-size: .88rem;
     line-height: 2.1;
-    color: #565a4d;
+    color: #51586b;
     white-space: pre-line;
 }
 
@@ -1805,7 +1862,7 @@
 .st-cart-remove {
     border: 0;
     background: transparent;
-    color: #b3b6a8;
+    color: #aeb5c5;
     font-size: 1rem;
     padding: .2rem;
 }
@@ -1820,7 +1877,7 @@
     justify-content: space-between;
     font-size: .85rem;
     padding-block: .55rem;
-    color: #565a4d;
+    color: #51586b;
 }
 
     .st-summary-row strong {
@@ -1944,7 +2001,7 @@
 }
 
     .st-pay-option:hover {
-        border-color: #c9d4a2;
+        border-color: #c6cee6;
     }
 
     .st-pay-option.is-active {
@@ -2078,7 +2135,7 @@
     display: grid;
     gap: .55rem;
     font-size: .82rem;
-    color: #565a4d;
+    color: #51586b;
 }
 
     .st-info-list div {
@@ -2188,7 +2245,7 @@
     .st-status.paid { background: #e6f3e0; color: #3f7a2a; }
     .st-status.shipped { background: #e7e5fa; color: #4b3fa0; }
     .st-status.delivered { background: #dff2e6; color: #276c40; }
-    .st-status.cancelled { background: #f0f0ec; color: #6c6f62; }
+    .st-status.cancelled { background: #f0f0ec; color: #6b7280; }
 
 /* ---------- ورود لازم ---------- */
 .st-login-prompt {
@@ -2256,7 +2313,7 @@
     .st-topbar-inner { justify-content: center; }
     .st-topbar-links { font-size: .72rem; gap: .35rem; }
     .st-topbar-links .st-sep, .st-topbar-links a:last-of-type { display: none; }
-    .st-logo-mark { width: 44px; height: 44px; font-size: 1.3rem; }
+    .st-logo-mark { height: 46px; }
     .st-logo-text strong { font-size: 1.2rem; }
     .st-logo-text small { font-size: .66rem; }
     .st-action span:not(.st-cart-icon):not(.st-cart-badge) { display: none; }

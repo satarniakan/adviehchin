@@ -66,7 +66,7 @@ else
                                                  style="width:42px; height:42px; object-fit:cover; border-radius:8px;" />
                                             <div>
                                                 <div class="fw-semibold">@item.ProductName</div>
-                                                <div class="text-body-secondary small">@item.Unit</div>
+                                                <div class="text-body-secondary small">@(item.VariantTitle ?? item.Unit)</div>
                                             </div>
                                         </div>
                                     </td>
