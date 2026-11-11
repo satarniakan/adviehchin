@@ -1,0 +1,118 @@
+@page "/about"
+@layout StoreLayout
+@inject IStoreCatalogService Catalog
+<PageTitle>درباره ما | ادویه‌چین</PageTitle>
+
+<div class="st-container">
+    <nav class="st-breadcrumb st-about-crumb" aria-label="مسیر صفحه">
+        <a href="/">خانه</a>
+        <i class="bi bi-chevron-left"></i>
+        <span>درباره ما</span>
+    </nav>
+
+    <section class="st-about-hero">
+        <div class="st-about-hero-copy">
+            <span class="st-eyebrow"><i class="bi bi-stars"></i> داستان ادویه‌چین</span>
+            <h1>@content.Title</h1>
+            <p>@content.Lead</p>
+            <div class="st-hero-cta">
+                <a class="st-btn" href="/shop">خرید از فروشگاه <i class="bi bi-arrow-left"></i></a>
+                <a class="st-btn st-btn-ghost" href="/#contact">تماس با ما</a>
+            </div>
+        </div>
+        <div class="st-about-hero-media">
+            <StoreMascot Expression="MascotExpression.Happy" Size="MascotSize.Large" />
+        </div>
+    </section>
+
+    @if (content.Stats.Count > 0)
+    {
+        <section class="st-about-stats" aria-label="ادویه‌چین در یک نگاه">
+            @foreach (var stat in content.Stats)
+            {
+                <div class="st-about-stat">
+                    <strong>@stat.Value</strong>
+                    <span>@stat.Label</span>
+                </div>
+            }
+        </section>
+    }
+
+    <section class="st-about-story">
+        <div class="st-about-story-copy">
+            <span class="st-eyebrow"><i class="bi bi-book"></i> روایت ما</span>
+            <h2>@content.StoryTitle</h2>
+            @foreach (var paragraph in storyParagraphs)
+            {
+                <p>@paragraph</p>
+            }
+        </div>
+        <div class="st-about-story-media">
+            <img src="@(content.ImageUrl ?? "/images/store/hero-spices.jpg")" alt="@content.StoryTitle" loading="lazy" />
+            <div class="st-about-story-badge">
+                <i class="bi bi-geo-alt"></i>
+                <div>
+                    <strong>بازار تهران</strong>
+                    <span>خیابان ۱۲ فروردین</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @if (content.Values.Count > 0)
+    {
+        <section class="st-section st-about-values">
+            <div class="st-section-head">
+                <div>
+                    <h2>چرا ادویه‌چین؟</h2>
+                    <p>قول‌هایی که هر روز به آن‌ها وفادار می‌مانیم.</p>
+                </div>
+            </div>
+            <div class="st-about-values-grid">
+                @foreach (var value in content.Values)
+                {
+                    <article class="st-about-value">
+                        <span class="st-about-value-icon"><i class="bi @value.Icon"></i></span>
+                        <h3>@value.Title</h3>
+                        <p>@value.Text</p>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="st-brand-intro" aria-labelledby="brand-ambassador-title">
+        <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Large" />
+        <div>
+            <span class="st-brand-empty-label">با سفیر برند آشنا شوید</span>
+            <h2 id="brand-ambassador-title">من عطار ادویه‌چینم؛ همراه خوش‌عطر آشپزخانهٔ شما</h2>
+            <p>این عطار خوش‌رو، شخصیت کارتونی ادویه‌چین است؛ یادآور گپ‌وگفت‌های صمیمی کنار پیشخوان عطاری. اینجا همراه شماست تا میان طعم‌ها انتخاب کنید، بسته‌بندی‌ها را بشناسید و مسیر خرید را راحت‌تر طی کنید.</p>
+            <a class="st-btn st-btn-sm" href="/recipes#spice-guide-title">با هم ادویه انتخاب کنیم</a>
+        </div>
+    </section>
+
+    <section class="st-about-cta">
+        <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Small" />
+        <div class="st-about-cta-copy">
+            <h2>سفرهٔ شما، افتخار ماست</h2>
+            <p>از زعفران سرگل تا سبزی خشک محلی؛ هر چه برای طعم اصیل لازم دارید، یک‌جا آماده است.</p>
+        </div>
+        <div class="st-about-cta-actions">
+            <a class="st-btn st-btn-accent" href="/shop">دیدن محصولات <i class="bi bi-arrow-left"></i></a>
+            <a class="st-btn st-btn-light" href="/#contact">گفت‌وگو با ما</a>
+        </div>
+    </section>
+</div>
+
+@code {
+    private AboutContent content = new();
+    private IReadOnlyList<string> storyParagraphs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        content = await Catalog.GetAboutAsync();
+        storyParagraphs = content.StoryBody
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToArray();
+    }
+}

@@ -33,6 +33,7 @@ public static class AccountEndpoints
             IAuthService authService,
             ICaptchaValidator captcha,
             [FromForm] string phoneNumber,
+            [FromForm] string? returnUrl,
             [FromForm(Name = "cf-turnstile-response")] string? captchaToken) =>
         {
             try
@@ -44,7 +45,7 @@ public static class AccountEndpoints
                 }
 
                 await authService.RequestOtpAsync(phoneNumber);
-                return Results.Redirect($"/verify-otp?phone={Uri.EscapeDataString(phoneNumber)}");
+                return Results.Redirect($"/verify-otp?phone={Uri.EscapeDataString(phoneNumber)}{ReturnUrlQuery(returnUrl)}");
             }
             catch (Adviehchin.Domain.Exceptions.BusinessRuleException ex)
             {
@@ -56,13 +57,19 @@ public static class AccountEndpoints
         app.MapPost("/Account/VerifyOtp", async (
             IAuthService authService,
             [FromForm] string phoneNumber,
-            [FromForm] string code) =>
+            [FromForm] string code,
+            [FromForm] string? returnUrl) =>
         {
             var result = await authService.VerifyOtpAsync(phoneNumber, code);
 
             if (!result.Succeeded)
             {
-                return Results.Redirect($"/verify-otp?phone={Uri.EscapeDataString(phoneNumber)}&error=1");
+                return Results.Redirect($"/verify-otp?phone={Uri.EscapeDataString(phoneNumber)}&error=1{ReturnUrlQuery(returnUrl)}");
+            }
+
+            if (IsLocalUrl(returnUrl))
+            {
+                return Results.Redirect(returnUrl!);
             }
 
             return result.IsNewUser
@@ -175,4 +182,14 @@ public static class AccountEndpoints
 
         return app;
     }
+
+    // فقط مسیر داخلی سایت پذیرفته می‌شود تا returnUrl به بازگردانی بیرونی تبدیل نشود
+    private static bool IsLocalUrl(string? url) =>
+        !string.IsNullOrWhiteSpace(url) &&
+        url.StartsWith('/') &&
+        !url.StartsWith("//") &&
+        !url.StartsWith("/\\");
+
+    private static string ReturnUrlQuery(string? url) =>
+        IsLocalUrl(url) ? $"&returnUrl={Uri.EscapeDataString(url!)}" : string.Empty;
 }

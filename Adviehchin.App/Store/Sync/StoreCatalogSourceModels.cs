@@ -1,6 +1,6 @@
 namespace Adviehchin.App.Store.Sync;
 
-/// <summary>دسته در منبع همگام‌سازی. فقط فیلدهایی که وارد فروشگاه می‌شوند (بدون عکس).</summary>
+/// <summary>دسته در منبع همگام‌سازی.</summary>
 public sealed record SourceCategory(long Id, string Name, string Slug, string? Description);
 
 /// <summary>مقدار یک ویژگی محصول در منبع (مثل «۱۰۰ گرم» با کد <c>100g</c>).</summary>

@@ -4,6 +4,7 @@
 @inject IStoreCatalogService Catalog
 <PageTitle>ادویه‌چین | فروشگاه ادویه و خواربار</PageTitle>
 
+<div class="st-container">
 <section class="st-hero" data-hero>
     <article class="st-hero-slide is-active">
         <div class="st-hero-copy">
@@ -67,11 +68,11 @@
     </article>
 
     <button class="st-hero-arrow" data-hero-prev aria-label="اسلاید قبلی"
-            style="position:absolute; top:50%; inset-inline-end:1rem; transform:translateY(-50%); z-index:5;">
+            style="position:absolute; top:50%; inset-inline-start:1rem; transform:translateY(-50%); z-index:5;">
         <i class="bi bi-chevron-right"></i>
     </button>
     <button class="st-hero-arrow" data-hero-next aria-label="اسلاید بعدی"
-            style="position:absolute; top:50%; inset-inline-start:1rem; transform:translateY(-50%); z-index:5;">
+            style="position:absolute; top:50%; inset-inline-end:1rem; transform:translateY(-50%); z-index:5;">
         <i class="bi bi-chevron-left"></i>
     </button>
 
@@ -87,7 +88,7 @@
         <i class="bi bi-truck"></i>
         <div>
             <strong>ارسال سریع و رایگان</strong>
-            <span>سفارش بالای ۵۰۰ هزار تومان، ارسال رایگان</span>
+            <span>سفارش بالای ۲ میلیون تومان، ارسال رایگان</span>
         </div>
     </div>
     <div class="st-feature">
@@ -116,20 +117,61 @@
             </div>
             <a class="st-link-more" href="/shop">همهٔ محصولات <i class="bi bi-arrow-left"></i></a>
         </div>
-        <div class="st-cats">
-            @foreach (var category in categories)
-            {
-                <a class="st-cat" href="@($"/shop?category={category.Slug}")">
-                    <span class="st-cat-img">
-                        <img src="@(category.ImageUrl ?? "/images/store/products/advieh.jpg")" alt="@category.Name" loading="lazy" />
-                    </span>
-                    <strong>@category.Name</strong>
-                    <span>مشاهدهٔ محصولات</span>
-                </a>
-            }
+        <div class="st-cats-carousel">
+            <div class="st-cats" data-cats-track>
+                @foreach (var category in categories)
+                {
+                    <a class="st-cat" href="@($"/shop?category={category.Slug}")">
+                        <span class="st-cat-img">
+                            <img src="@(category.ImageUrl ?? "/images/store/products/advieh.jpg")" alt="@category.Name" loading="lazy" />
+                        </span>
+                        <strong>@category.Name</strong>
+                        <span>مشاهدهٔ محصولات</span>
+                    </a>
+                }
+            </div>
+            <button class="st-cats-arrow st-cats-arrow-prev" type="button" data-cats-prev aria-label="دسته‌بندی‌های قبلی">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <button class="st-cats-arrow st-cats-arrow-next" type="button" data-cats-next aria-label="دسته‌بندی‌های بعدی">
+                <i class="bi bi-chevron-left"></i>
+            </button>
         </div>
     </section>
 }
+
+<section class="st-section">
+    <div class="st-section-head">
+        <div>
+            <h2>طعم هر دیار، در یک پک</h2>
+            <p>پک‌های ادویهٔ قومی؛ هر پک، یک سفر طعمی به گوشه‌ای از ایران.</p>
+        </div>
+        <a class="st-link-more" href="/shop?category=gifts">همهٔ پک‌ها <i class="bi bi-arrow-left"></i></a>
+    </div>
+    <div class="st-eth-carousel">
+        <div class="st-eth-track" data-eth-track>
+            @foreach (var pack in EthnicPacks.All)
+            {
+                <a class="st-eth-card" href="@($"/product/{pack.Slug}")">
+                    <span class="st-eth-media">
+                        <img src="@pack.ImageUrl" alt="@($"{pack.Name} — {pack.Tagline}")" loading="lazy" />
+                    </span>
+                    <span class="st-eth-body">
+                        <strong>@pack.Name</strong>
+                        <span>@pack.Tagline</span>
+                        <span class="st-eth-price">@StoreText.Price(EthnicPacks.PriceTomans) تومان</span>
+                    </span>
+                </a>
+            }
+        </div>
+        <button class="st-cats-arrow st-cats-arrow-prev" type="button" data-eth-prev aria-label="پک‌های قبلی">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+        <button class="st-cats-arrow st-cats-arrow-next" type="button" data-eth-next aria-label="پک‌های بعدی">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    </div>
+</section>
 
 <section class="st-section">
     <div class="st-section-head">
@@ -204,7 +246,7 @@
     <section class="st-section">
         <div class="st-section-head">
             <div>
-                <h2>تازه‌های هر دسته</h2>
+                <h2>نو که اومد به بازار</h2>
                 <p>محصولات تازه‌رسیده را دسته‌به‌دسته ببینید.</p>
             </div>
         </div>
@@ -240,20 +282,20 @@
     </section>
 }
 
-<section class="st-section" id="why-us">
+<section class="st-section st-heart" id="why-us">
     <div class="st-section-head">
         <div>
-            <h2>چرا ادویه‌چین؟</h2>
+            <h2>از قلب خانه</h2>
             <p>روایت مشتریانی که طعم تازه را انتخاب کرده‌اند.</p>
         </div>
     </div>
-    <div class="st-quotes">
-        <article class="st-quote">
+    <div class="st-quotes" data-quotes>
+        <article class="st-quote" data-quote>
             <i class="bi bi-quote"></i>
             <div class="st-quote-stars">
                 <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
             </div>
-            <p>
+            <p data-quote-text>
                 زعفرانی که خریدم واقعاً رنگ و عطر داشت؛ برخلاف نمونه‌هایی که قبلاً
                 گرفته بودم. بسته‌بندی هم تمیز و مقاوم بود.
             </p>
@@ -265,12 +307,12 @@
                 </div>
             </div>
         </article>
-        <article class="st-quote">
+        <article class="st-quote" data-quote>
             <i class="bi bi-quote"></i>
             <div class="st-quote-stars">
                 <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
             </div>
-            <p>
+            <p data-quote-text>
                 ادویهٔ پلوی آماده‌شان دقیقاً طعم ادویهٔ خانگی خودمان را دارد.
                 سفارش دومم را هم ثبت کردم و زود رسید.
             </p>
@@ -282,12 +324,12 @@
                 </div>
             </div>
         </article>
-        <article class="st-quote">
+        <article class="st-quote" data-quote>
             <i class="bi bi-quote"></i>
             <div class="st-quote-stars">
                 <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
             </div>
-            <p>
+            <p data-quote-text>
                 پک هدیه را برای تولد خواهرم گرفتم؛ چیدمانش خیلی شیک بود و
                 کیفیت ادویه‌ها هم عالی. حتماً باز هم سفارش می‌دهم.
             </p>
@@ -303,28 +345,40 @@
 </section>
 
 <section class="st-newsletter">
-    <div>
-        <h2>از تخفیف‌ها جا نمانید</h2>
-        <p>
-            ایمیل خود را ثبت کنید تا خبر تازه‌های فروشگاه، تخفیف‌های فصلی و
-            دستورهای آشپزی با ادویه را برایتان بفرستیم.
-        </p>
+    <div class="st-news-copy">
+        <StoreMascot Expression="MascotExpression.Happy" Size="MascotSize.Small" />
+        <div>
+            <h2>جا نمونی، ادویه‌چین تخفیف داره</h2>
+            <p>
+                شمارهٔ موبایلت را ثبت کن تا خبر تازه‌ها و تخفیف‌های ادویه‌چین را
+                برایت بفرستیم؛ ایمیل هم اگر خواستی همراه آن ثبت کن.
+            </p>
+        </div>
     </div>
     @if (subscribed)
     {
         <div class="st-news-done">
             <i class="bi bi-check-circle-fill"></i>
-            <span>ثبت شد! از این پس خبرهای ادویه‌چین برای «@email» ارسال می‌شود.</span>
+            <span>ثبت شد! خبرهای ادویه‌چین برای «@StoreText.PersianDigits(phone!)»@(string.IsNullOrWhiteSpace(email) ? "" : $" و ایمیل «{email}»") ارسال می‌شود.</span>
         </div>
     }
     else
     {
-        <form class="st-news-form" @onsubmit="SubscribeAsync" @onsubmit:preventDefault>
-            <input type="email" @bind="email" placeholder="نشانی ایمیل شما" aria-label="نشانی ایمیل" required />
-            <button type="submit">عضویت</button>
-        </form>
+        <div class="st-news-side">
+            <form class="st-news-form" @onsubmit="SubscribeAsync" @onsubmit:preventDefault>
+                <input type="tel" inputmode="numeric" maxlength="11" @bind="phone"
+                       placeholder="شمارهٔ موبایل (۰۹…)" aria-label="شمارهٔ موبایل" required />
+                <input type="email" @bind="email" placeholder="ایمیل (اختیاری)" aria-label="ایمیل" />
+                <button type="submit">عضویت</button>
+            </form>
+            @if (!string.IsNullOrWhiteSpace(newsletterError))
+            {
+                <span class="st-news-error">@newsletterError</span>
+            }
+        </div>
     }
 </section>
+</div>
 
 @code {
     private IReadOnlyList<StoreCategory> categories = [];
@@ -335,6 +389,8 @@
     private bool tabLoading;
     private bool subscribed;
     private string? email;
+    private string? phone;
+    private string? newsletterError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -370,8 +426,30 @@
 
     private Task SubscribeAsync()
     {
-        if (string.IsNullOrWhiteSpace(email)) return Task.CompletedTask;
+        var digits = NormalizeDigits(phone);
+        if (digits.Length != 11 || !digits.StartsWith("09", StringComparison.Ordinal))
+        {
+            newsletterError = "شمارهٔ موبایل را به شکل ۰۹ و ده رقم بعد از آن وارد کنید.";
+            return Task.CompletedTask;
+        }
+
+        phone = digits;
+        newsletterError = null;
         subscribed = true;
         return Task.CompletedTask;
+    }
+
+    private static string NormalizeDigits(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+
+        var chars = value.Select(ch => ch switch
+        {
+            >= '۰' and <= '۹' => (char)('0' + (ch - '۰')),
+            >= '٠' and <= '٩' => (char)('0' + (ch - '٠')),
+            _ => ch
+        });
+
+        return new string(chars.Where(char.IsAsciiDigit).ToArray());
     }
 }

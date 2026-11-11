@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using Adviehchin.App.Store.Entities;
 using Adviehchin.Application.Helpers;
 
@@ -17,6 +18,10 @@ public class CartLine
 
     /// <summary>برای محصول چندگزینه‌ای، عنوان گزینه (مثل «سلفون / ۱۰۰ گرم»).</summary>
     public string Unit { get; set; } = string.Empty;
+
+    /// <summary>کلید نوع بسته‌بندی انتخابی مشتری (معمولی/آمیرزا/شاهپسند).</summary>
+    public string Packaging { get; set; } = StorePackaging.DefaultKey;
+
     public string? ImageUrl { get; set; }
     public long UnitPriceTomans { get; set; }
     public int Quantity { get; set; }
@@ -110,6 +115,114 @@ public class CategoryAdminInput
     public int SortOrder { get; set; }
 
     public bool IsActive { get; set; } = true;
+}
+
+public class AboutValueItem
+{
+    public string Icon { get; set; } = "bi-patch-check";
+
+    [Required(ErrorMessage = "عنوان ارزش الزامی است.")]
+    [StringLength(100, ErrorMessage = "عنوان ارزش حداکثر ۱۰۰ نویسه است.")]
+    public string Title { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "متن ارزش الزامی است.")]
+    [StringLength(300, ErrorMessage = "متن ارزش حداکثر ۳۰۰ نویسه است.")]
+    public string Text { get; set; } = string.Empty;
+}
+
+public class AboutStatItem
+{
+    [Required(ErrorMessage = "مقدار آمار الزامی است.")]
+    [StringLength(30, ErrorMessage = "مقدار آمار حداکثر ۳۰ نویسه است.")]
+    public string Value { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "برچسب آمار الزامی است.")]
+    [StringLength(100, ErrorMessage = "برچسب آمار حداکثر ۱۰۰ نویسه است.")]
+    public string Label { get; set; } = string.Empty;
+}
+
+public class AboutAdminInput
+{
+    [Required(ErrorMessage = "عنوان صفحه الزامی است.")]
+    [StringLength(150, ErrorMessage = "عنوان حداکثر ۱۵۰ نویسه است.")]
+    public string Title { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "متن سربرگ الزامی است.")]
+    [StringLength(600, ErrorMessage = "متن سربرگ حداکثر ۶۰۰ نویسه است.")]
+    public string Lead { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "عنوان داستان الزامی است.")]
+    [StringLength(150, ErrorMessage = "عنوان داستان حداکثر ۱۵۰ نویسه است.")]
+    public string StoryTitle { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "متن داستان الزامی است.")]
+    [StringLength(8000, ErrorMessage = "متن داستان حداکثر ۸۰۰۰ نویسه است.")]
+    public string StoryBody { get; set; } = string.Empty;
+
+    [StringLength(500, ErrorMessage = "نشانی تصویر حداکثر ۵۰۰ نویسه است.")]
+    public string? ImageUrl { get; set; }
+
+    public List<AboutValueItem> Values { get; set; } = [];
+    public List<AboutStatItem> Stats { get; set; } = [];
+
+    public DateTime UpdatedAt { get; set; }
+}
+
+/// <summary>محتوای خواندنی صفحهٔ درباره ما برای نمایش عمومی.</summary>
+public class AboutContent
+{
+    public string Title { get; set; } = string.Empty;
+    public string Lead { get; set; } = string.Empty;
+    public string StoryTitle { get; set; } = string.Empty;
+    public string StoryBody { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+    public IReadOnlyList<AboutValueItem> Values { get; set; } = [];
+    public IReadOnlyList<AboutStatItem> Stats { get; set; } = [];
+}
+
+public static class AboutContentMapper
+{
+    public static AboutContent ToContent(this StoreAboutPage row) => new()
+    {
+        Title = row.Title,
+        Lead = row.Lead,
+        StoryTitle = row.StoryTitle,
+        StoryBody = row.StoryBody,
+        ImageUrl = row.ImageUrl,
+        Values = JsonSerializer.Deserialize<List<AboutValueItem>>(row.ValuesJson) ?? [],
+        Stats = JsonSerializer.Deserialize<List<AboutStatItem>>(row.StatsJson) ?? []
+    };
+
+    public static AboutAdminInput ToInput(this StoreAboutPage row) => new()
+    {
+        Title = row.Title,
+        Lead = row.Lead,
+        StoryTitle = row.StoryTitle,
+        StoryBody = row.StoryBody,
+        ImageUrl = row.ImageUrl,
+        Values = JsonSerializer.Deserialize<List<AboutValueItem>>(row.ValuesJson) ?? [],
+        Stats = JsonSerializer.Deserialize<List<AboutStatItem>>(row.StatsJson) ?? [],
+        UpdatedAt = row.UpdatedAt
+    };
+}
+
+public static class AboutIcons
+{
+    public static readonly (string Key, string Label)[] All =
+    [
+        ("bi-patch-check", "نشان اصالت"),
+        ("bi-stars", "تازگی و درخشش"),
+        ("bi-truck", "ارسال"),
+        ("bi-arrow-repeat", "بازگشت کالا"),
+        ("bi-credit-card", "پرداخت"),
+        ("bi-award", "کیفیت"),
+        ("bi-shield-check", "اعتماد"),
+        ("bi-heart", "مشتری‌مداری"),
+        ("bi-shop", "بازار و حجره"),
+        ("bi-gift", "هدیه"),
+        ("bi-telephone", "پاسخ‌گویی"),
+        ("bi-geo-alt", "موقعیت")
+    ];
 }
 
 public static class StoreText

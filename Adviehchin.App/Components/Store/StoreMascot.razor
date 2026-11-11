@@ -1,0 +1,41 @@
+<figure class="st-mascot st-mascot-@sizeClass @Class">
+    <img src="@source" alt="@alt" width="640" height="640" loading="lazy" decoding="async" />
+</figure>
+
+@code {
+    [Parameter]
+    public MascotExpression Expression { get; set; } = MascotExpression.Happy;
+
+    [Parameter]
+    public MascotSize Size { get; set; } = MascotSize.Medium;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private string sizeClass => Size switch
+    {
+        MascotSize.Small => "sm",
+        MascotSize.Large => "lg",
+        _ => "md"
+    };
+
+    private string source => Expression switch
+    {
+        MascotExpression.Pensive => "/images/brand/attar-thinking.jpg",
+        MascotExpression.Pointing => "/images/brand/attar-pointing.jpg",
+        MascotExpression.Angry => "/images/brand/attar-angry.jpg",
+        MascotExpression.Running => "/images/brand/attar-running.jpg",
+        MascotExpression.Sad => "/images/brand/attar-sad.jpg",
+        _ => "/images/brand/attar-happy.jpg"
+    };
+
+    private string alt => Expression switch
+    {
+        MascotExpression.Pensive => "عطار ادویه‌چین در حال فکر کردن؛ سفیر برند",
+        MascotExpression.Pointing => "عطار ادویه‌چین که راهنمایی می‌کند؛ سفیر برند",
+        MascotExpression.Angry => "عطار ادویه‌چین با چهرهٔ جدی؛ سفیر برند",
+        MascotExpression.Running => "عطار ادویه‌چین در حال جست‌وجو؛ سفیر برند",
+        MascotExpression.Sad => "عطار ادویه‌چین با چهرهٔ غمگین؛ سفیر برند",
+        _ => "عطار ادویه‌چین با کاسهٔ ادویه؛ سفیر برند"
+    };
+}

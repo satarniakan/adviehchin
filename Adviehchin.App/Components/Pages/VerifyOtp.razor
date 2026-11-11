@@ -18,6 +18,10 @@
         <form method="post" action="/Account/VerifyOtp" data-enhance="false">
             <AntiforgeryToken />
             <input type="hidden" name="phoneNumber" value="@Phone" />
+            @if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            }
 
             <div class="mb-4">
                 <label class="form-label">کد تأیید</label>
@@ -28,7 +32,7 @@
         </form>
 
         <p class="text-center text-muted mt-3 mb-0" style="font-size: 0.9rem;">
-            <a href="/login">تغییر شماره موبایل</a>
+            <a href="@($"/login{(string.IsNullOrWhiteSpace(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")}")">تغییر شماره موبایل</a>
         </p>
     </div>
 </div>
@@ -39,4 +43,7 @@
 
     [SupplyParameterFromQuery(Name = "error")]
     private string? Error { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    private string? ReturnUrl { get; set; }
 }

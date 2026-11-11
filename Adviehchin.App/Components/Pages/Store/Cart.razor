@@ -19,11 +19,12 @@
 <div class="st-container">
     @if (CartStore.IsEmpty)
     {
-        <div class="st-empty" style="padding-block:4rem;">
-            <i class="bi bi-bag-x"></i>
-            <h3>سبد خرید شما خالی است</h3>
-            <p>از میان ادویه‌ها و پک‌های هدیهٔ ما انتخاب کنید.</p>
-            <a class="st-btn" href="/shop">رفتن به فروشگاه <i class="bi bi-arrow-left"></i></a>
+        <div class="st-empty st-brand-empty">
+            <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Large" />
+            <span class="st-brand-empty-label">پیشنهاد عطار ادویه‌چین</span>
+            <h3>سبدتان هنوز عطر نگرفته!</h3>
+            <p>هنوز کالایی به سبد اضافه نکرده‌اید. بیایید از میان ادویه‌ها و طعم‌های تازه، همراه غذای بعدی‌تان را پیدا کنیم.</p>
+            <a class="st-btn" href="/shop">گشتی در فروشگاه <i class="bi bi-arrow-left" aria-hidden="true"></i></a>
         </div>
     }
     else
@@ -41,6 +42,7 @@
                         <div>
                             <div class="st-cart-name"><a href="@($"/product/{line.Slug}")">@line.Name</a></div>
                             <div class="st-cart-sub">@line.Unit · @StoreText.Price(line.UnitPriceTomans)</div>
+                            <PackagingTag Key="@line.Packaging" />
                             <div class="st-qty" style="margin-top:.5rem; width:fit-content;">
                                 <button type="button" disabled="@(line.Quantity <= 1)" @onclick="() => ChangeAsync(line, -1)" aria-label="کاهش">
                                     <i class="bi bi-dash"></i>
@@ -123,12 +125,12 @@
     }
 
     private Task ChangeAsync(CartLine line, int delta) =>
-        RunSafe(() => CartStore.SetQuantityAsync(line.ProductId, line.VariantId, line.Quantity + delta));
+        RunSafe(() => CartStore.SetQuantityAsync(line.ProductId, line.VariantId, line.Quantity + delta, line.Packaging));
 
     private Task RemoveAsync(CartLine line) =>
         RunSafe(async () =>
         {
-            await CartStore.RemoveAsync(line.ProductId, line.VariantId);
+            await CartStore.RemoveAsync(line.ProductId, line.VariantId, line.Packaging);
             Toast.ShowInfo("محصول از سبد خرید حذف شد.");
         });
 }

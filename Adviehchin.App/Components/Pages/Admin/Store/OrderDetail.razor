@@ -67,6 +67,7 @@ else
                                             <div>
                                                 <div class="fw-semibold">@item.ProductName</div>
                                                 <div class="text-body-secondary small">@(item.VariantTitle ?? item.Unit)</div>
+                                                <PackagingTag Key="@item.Packaging" />
                                             </div>
                                         </div>
                                     </td>

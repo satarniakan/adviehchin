@@ -1,0 +1,53 @@
+@inject CartState Cart
+@inject NavigationManager Nav
+@implements IDisposable
+
+<nav class="st-tabbar" aria-label="ناوبری پایین صفحه">
+    <a class="st-tab @(Path == "" ? "is-active" : "")" href="/">
+        <i class="bi bi-house" aria-hidden="true"></i>
+        <span>خانه</span>
+    </a>
+    <a class="st-tab @(Path.StartsWith("shop") ? "is-active" : "")" href="/shop">
+        <i class="bi bi-shop" aria-hidden="true"></i>
+        <span>فروشگاه</span>
+    </a>
+    <button type="button" class="st-tab st-tab-cart" data-cart-open aria-label="باز کردن سبد خرید">
+        <span class="st-tab-icon">
+            <i class="bi bi-bag" aria-hidden="true"></i>
+            @if (Cart.TotalQuantity > 0)
+            {
+                <span class="st-tab-badge" @key="Cart.TotalQuantity">@StoreText.PersianDigits(Cart.TotalQuantity.ToString())</span>
+            }
+        </span>
+        <span>سبد خرید</span>
+    </button>
+    <a class="st-tab @(Path.StartsWith("my-orders") ? "is-active" : "")" href="/my-orders">
+        <i class="bi bi-box-seam" aria-hidden="true"></i>
+        <span>سفارش‌ها</span>
+    </a>
+</nav>
+
+@code {
+    private string Path => Nav.ToBaseRelativePath(Nav.Uri);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        Cart.Changed += OnCartChanged;
+        Nav.LocationChanged += OnLocationChanged;
+        await Cart.InitializeAsync();
+        StateHasChanged();
+    }
+
+    private void OnCartChanged() => InvokeAsync(StateHasChanged);
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Cart.Changed -= OnCartChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

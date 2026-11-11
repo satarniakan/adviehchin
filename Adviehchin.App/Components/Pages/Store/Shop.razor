@@ -68,7 +68,7 @@
             <div class="st-filter-group">
                 <div class="st-filter-title">مزیت خرید از ما</div>
                 <ul class="st-info-list" style="font-size:.76rem;">
-                    <li style="display:flex; gap:.45rem; margin-bottom:.55rem;"><i class="bi bi-truck"></i> ارسال رایگان بالای ۵۰۰ هزار تومان</li>
+                    <li style="display:flex; gap:.45rem; margin-bottom:.55rem;"><i class="bi bi-truck"></i> ارسال رایگان بالای ۲ میلیون تومان</li>
                     <li style="display:flex; gap:.45rem; margin-bottom:.55rem;"><i class="bi bi-shield-check"></i> تضمین تازگی و اصالت</li>
                     <li style="display:flex; gap:.45rem;"><i class="bi bi-cash-coin"></i> پرداخت در محل</li>
                 </ul>
@@ -112,11 +112,12 @@
             }
             else if (result.Items.Count == 0)
             {
-                <div class="st-empty">
-                    <i class="bi bi-search"></i>
-                    <h3>محصولی پیدا نشد</h3>
-                    <p>فیلترها را تغییر دهید یا همهٔ محصولات را ببینید.</p>
-                    <a class="st-btn st-btn-sm" href="/shop">مشاهدهٔ همهٔ محصولات</a>
+                <div class="st-empty st-brand-empty">
+                    <StoreMascot Expression="MascotExpression.Pensive" Size="MascotSize.Large" />
+                    <span class="st-brand-empty-label">با هم پیدایش می‌کنیم</span>
+                    <h3>این بار دست‌خالی برگشتم!</h3>
+                    <p>محصولی با این جست‌وجو یا فیلترها پیدا نشد. نام کوتاه‌تری امتحان کنید یا فیلترها را بردارید؛ شاید طعم دلخواهتان همین نزدیکی باشد.</p>
+                    <a class="st-btn" href="/shop">دیدن همهٔ محصولات <i class="bi bi-arrow-left" aria-hidden="true"></i></a>
                 </div>
             }
             else

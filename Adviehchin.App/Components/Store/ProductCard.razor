@@ -2,23 +2,43 @@
 @inject NavigationManager Nav
 
 <article class="st-card @(Product.InStock ? "" : "is-out")">
-    <a class="st-card-media" href="@($"/product/{Product.Slug}")">
-        <img src="@ImageUrl" alt="@Product.Name" loading="lazy" />
-        <div class="st-card-badges">
-            @if (Product.DiscountPercent > 0)
+    <div class="st-card-media-wrap">
+        <a class="st-card-media" href="@($"/product/{Product.Slug}")">
+            <img src="@ImageUrl" alt="@Product.Name" loading="lazy" />
+            <div class="st-card-badges">
+                @if (Product.DiscountPercent > 0)
+                {
+                    <span class="st-badge hot">@StoreText.PersianDigits(Product.DiscountPercent.ToString())٪ تخفیف</span>
+                }
+                @if (Product.IsFeatured)
+                {
+                    <span class="st-badge">ویژه</span>
+                }
+            </div>
+            @if (!Product.InStock)
             {
-                <span class="st-badge hot">@StoreText.PersianDigits(Product.DiscountPercent.ToString())٪ تخفیف</span>
+                <span class="st-out-badge">ناموجود</span>
             }
-            @if (Product.IsFeatured)
-            {
-                <span class="st-badge">ویژه</span>
-            }
-        </div>
-        @if (!Product.InStock)
+        </a>
+        @if (Product.InStock)
         {
-            <span class="st-out-badge">ناموجود</span>
+            <button class="st-quick-add @(added ? "is-done" : "")"
+                    type="button"
+                    disabled="@adding"
+                    title="@(HasVariants ? "انتخاب وزن" : "افزودن به سبد خرید")"
+                    aria-label="افزودن به سبد خرید"
+                    @onclick="AddAsync">
+                @if (adding)
+                {
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <i class="bi @(added ? "bi-check-lg" : HasVariants ? "bi-sliders" : "bi-bag-plus")"></i>
+                }
+            </button>
         }
-    </a>
+    </div>
 
     <div class="st-card-body">
         <span class="st-card-cat">@(Product.Category?.Name ?? "ادویه‌چین")</span>
@@ -41,22 +61,6 @@
                     <small>/ @Product.Unit</small>
                 </span>
             </div>
-
-            <button class="st-add-btn @(added ? "is-done" : "")"
-                    type="button"
-                    disabled="@(!Product.InStock || adding)"
-                    title="@(Product.InStock ? (HasVariants ? "انتخاب بسته‌بندی و وزن" : "افزودن به سبد خرید") : "ناموجود")"
-                    aria-label="افزودن به سبد خرید"
-                    @onclick="AddAsync">
-                @if (adding)
-                {
-                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                }
-                else
-                {
-                    <i class="bi @(added ? "bi-check-lg" : HasVariants ? "bi-sliders" : "bi-bag-plus")"></i>
-                }
-            </button>
         </div>
     </div>
 </article>

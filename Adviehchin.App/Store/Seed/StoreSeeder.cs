@@ -134,6 +134,86 @@ public static class StoreSeeder
         await db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// پک‌های قومی را (در صورت نبود) می‌سازد و فعال نگه می‌دارد. پس از اولین همگام‌سازی که
+    /// محصولات محلی را غیرفعال می‌کند هم دوباره صدا زده می‌شود، پس تکرارپذیر است.
+    /// </summary>
+    public static async Task EnsureEthnicPacksAsync(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdviehchinDbContext>();
+        await EnsureEthnicPacksAsync(db);
+    }
+
+    public static async Task EnsureEthnicPacksAsync(AdviehchinDbContext db, CancellationToken cancellationToken = default)
+    {
+        var category = await db.Set<StoreCategory>()
+            .FirstOrDefaultAsync(c => c.Slug == EthnicPacks.CategorySlug, cancellationToken);
+
+        if (category is null)
+        {
+            category = new StoreCategory
+            {
+                Name = "پک‌های هدیه",
+                Slug = EthnicPacks.CategorySlug,
+                Description = "ست‌های هدیهٔ ادویه با بسته‌بندی ویژه.",
+                ImageUrl = "/images/store/banner-gift.jpg",
+                SortOrder = 4,
+                IsActive = true
+            };
+            db.Add(category);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        else if (!category.IsActive)
+        {
+            category.IsActive = true;
+        }
+
+        var slugs = EthnicPacks.All.Select(p => p.Slug).ToList();
+        var existing = await db.Set<StoreProduct>()
+            .Where(p => slugs.Contains(p.Slug))
+            .ToDictionaryAsync(p => p.Slug, cancellationToken);
+
+        foreach (var pack in EthnicPacks.All)
+        {
+            if (existing.TryGetValue(pack.Slug, out var product))
+            {
+                if (!product.IsManuallyDeactivated) product.IsActive = true;
+                continue;
+            }
+
+            db.Add(new StoreProduct
+            {
+                Name = pack.Name,
+                Slug = pack.Slug,
+                ShortDescription = pack.ShortDescription,
+                Description = pack.Description,
+                PriceTomans = EthnicPacks.PriceTomans,
+                Unit = EthnicPacks.Unit,
+                StockQuantity = EthnicPacks.StockQuantity,
+                Sku = pack.Sku,
+                Category = category,
+                ImageUrl = pack.ImageUrl,
+                IsActive = true,
+                Rating = 4.8,
+                ReviewCount = 18
+            });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>ردیف صفحهٔ درباره ما را در صورت نبود می‌سازد؛ ویرایش‌های ادمین دست‌نخورده می‌ماند.</summary>
+    public static async Task EnsureAboutAsync(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdviehchinDbContext>();
+        if (await db.Set<StoreAboutPage>().AnyAsync()) return;
+
+        db.Add(StoreAboutDefaults.Create());
+        await db.SaveChangesAsync();
+    }
+
     private static StoreProduct P(
         string name, string slug, int categoryId, long price, long? discount,
         string shortDescription, string description, string unit, int stockQuantity, string sku,

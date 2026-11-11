@@ -56,24 +56,27 @@ public sealed class CartState
         Notify();
     }
 
-    public async Task AddAsync(StoreProduct product, StoreProductVariant? variant, int quantity = 1)
+    public async Task AddAsync(StoreProduct product, StoreProductVariant? variant, int quantity = 1, string? packaging = null)
     {
         await InitializeAsync();
 
         var stock = variant?.StockQuantity ?? product.StockQuantity;
         if (stock <= 0 || quantity <= 0) return;
 
+        var pack = StorePackaging.Normalize(packaging);
         var max = Math.Clamp(stock, 1, 99);
-        var line = _lines.FirstOrDefault(l => l.ProductId == product.Id && l.VariantId == variant?.Id);
+        var line = _lines.FirstOrDefault(l =>
+            l.ProductId == product.Id && l.VariantId == variant?.Id && l.Packaging == pack);
         if (line is null)
         {
-            line = new CartLine { ProductId = product.Id, VariantId = variant?.Id };
+            line = new CartLine { ProductId = product.Id, VariantId = variant?.Id, Packaging = pack };
             _lines.Add(line);
         }
 
         line.Name = product.Name;
         line.Slug = product.Slug;
         line.Unit = variant?.Title is { Length: > 0 } title ? title : product.Unit;
+        line.Packaging = pack;
         line.ImageUrl = product.ImageUrl;
         line.UnitPriceTomans = variant?.EffectivePriceTomans ?? product.EffectivePriceTomans;
         line.StockQuantity = stock;
@@ -82,10 +85,12 @@ public sealed class CartState
         await PersistAsync();
     }
 
-    public async Task SetQuantityAsync(int productId, int? variantId, int quantity)
+    public async Task SetQuantityAsync(int productId, int? variantId, int quantity, string? packaging = null)
     {
         await InitializeAsync();
-        var line = _lines.FirstOrDefault(l => l.ProductId == productId && l.VariantId == variantId);
+        var pack = StorePackaging.Normalize(packaging);
+        var line = _lines.FirstOrDefault(l =>
+            l.ProductId == productId && l.VariantId == variantId && l.Packaging == pack);
         if (line is null) return;
 
         if (quantity <= 0)
@@ -100,10 +105,11 @@ public sealed class CartState
         await PersistAsync();
     }
 
-    public async Task RemoveAsync(int productId, int? variantId)
+    public async Task RemoveAsync(int productId, int? variantId, string? packaging = null)
     {
         await InitializeAsync();
-        _lines.RemoveAll(l => l.ProductId == productId && l.VariantId == variantId);
+        var pack = StorePackaging.Normalize(packaging);
+        _lines.RemoveAll(l => l.ProductId == productId && l.VariantId == variantId && l.Packaging == pack);
         await PersistAsync();
     }
 

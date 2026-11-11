@@ -31,7 +31,7 @@
     else if (Cart.IsEmpty)
     {
         <div class="st-empty" style="padding-block:4rem;">
-            <i class="bi bi-bag-x"></i>
+            <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Small" />
             <h3>سبد خرید شما خالی است</h3>
             <p>برای ثبت سفارش ابتدا محصولی به سبد اضافه کنید.</p>
             <a class="st-btn" href="/shop">رفتن به فروشگاه</a>
@@ -119,6 +119,7 @@
                             </span>
                             <div>
                                 <div class="st-checkout-line-name">@line.Name</div>
+                                <PackagingTag Key="@line.Packaging" />
                                 <div class="st-checkout-line-qty">@StoreText.PersianDigits(line.Quantity.ToString()) × @StoreText.Price(line.UnitPriceTomans)</div>
                             </div>
                             <span class="st-checkout-line-price">@StoreText.Price(line.LineTotalTomans)</span>
@@ -159,6 +160,10 @@
                 </aside>
             </div>
         </EditForm>
+        <details class="st-checkout-spice-guide">
+            <summary>ادویه‌ای از قلم نیفتاده؟ راهنمای عطار را ببینید</summary>
+            <SpiceGuide OpenProductsInNewTab="true" />
+        </details>
     }
 </div>
 

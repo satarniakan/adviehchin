@@ -1,10 +1,12 @@
 using Adviehchin.App.Store.Entities;
 using Adviehchin.App.Store.Models;
+using Adviehchin.App.Store.Seed;
 using Adviehchin.Application.DTOs;
 using Adviehchin.Domain.Exceptions;
 using Adviehchin.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace Adviehchin.App.Store.Services;
 
@@ -19,6 +21,9 @@ public interface IStoreAdminService
     Task<CategoryAdminInput?> GetCategoryInputAsync(int id);
     Task<int> SaveCategoryAsync(CategoryAdminInput input);
     Task DeleteCategoryAsync(int id);
+
+    Task<AboutAdminInput> GetAboutInputAsync();
+    Task SaveAboutAsync(AboutAdminInput input);
 }
 
 public sealed class StoreAdminService : IStoreAdminService
@@ -107,15 +112,18 @@ public sealed class StoreAdminService : IStoreAdminService
             throw new BusinessRuleException("محصول دیگری با این نشانی (slug) ثبت شده است.");
 
         StoreProduct product;
+        bool wasActive;
         if (input.Id == 0)
         {
             product = new StoreProduct();
             db.Set<StoreProduct>().Add(product);
+            wasActive = true;
         }
         else
         {
             product = await db.Set<StoreProduct>().FirstOrDefaultAsync(p => p.Id == input.Id)
                 ?? throw new NotFoundException("محصول", input.Id.ToString());
+            wasActive = product.IsActive;
         }
 
         product.Name = input.Name.Trim();
@@ -131,6 +139,10 @@ public sealed class StoreAdminService : IStoreAdminService
         product.ImageUrl = string.IsNullOrWhiteSpace(input.ImageUrl) ? null : input.ImageUrl.Trim();
         product.IsActive = input.IsActive;
         product.IsFeatured = input.IsFeatured;
+
+        // فقط تغییر دستی وضعیت، پرچم را می‌نشاند تا همگام‌سازی بعدی آن را برنگرداند
+        if (input.Id == 0 || wasActive != input.IsActive)
+            product.IsManuallyDeactivated = !input.IsActive;
 
         try
         {
@@ -240,6 +252,64 @@ public sealed class StoreAdminService : IStoreAdminService
             throw new BusinessRuleException("این دسته محصول دارد؛ ابتدا محصولات را جابه‌جا یا حذف کنید.");
 
         db.Set<StoreCategory>().Remove(category);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<AboutAdminInput> GetAboutInputAsync()
+    {
+        using var scope = _scopes.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdviehchinDbContext>();
+        var row = await db.Set<StoreAboutPage>().AsNoTracking().FirstOrDefaultAsync();
+        return (row ?? StoreAboutDefaults.Create()).ToInput();
+    }
+
+    public async Task SaveAboutAsync(AboutAdminInput input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Title))
+            throw new BusinessRuleException("عنوان صفحه الزامی است.");
+        if (string.IsNullOrWhiteSpace(input.Lead))
+            throw new BusinessRuleException("متن سربرگ الزامی است.");
+        if (string.IsNullOrWhiteSpace(input.StoryTitle))
+            throw new BusinessRuleException("عنوان داستان الزامی است.");
+        if (string.IsNullOrWhiteSpace(input.StoryBody))
+            throw new BusinessRuleException("متن داستان الزامی است.");
+        if (input.Values.Count > 8)
+            throw new BusinessRuleException("حداکثر ۸ ارزش قابل ثبت است.");
+        if (input.Stats.Count > 6)
+            throw new BusinessRuleException("حداکثر ۶ آمار قابل ثبت است.");
+
+        foreach (var value in input.Values)
+        {
+            if (!AboutIcons.All.Any(i => i.Key == value.Icon))
+                throw new BusinessRuleException("آیکون انتخاب‌شده معتبر نیست.");
+            if (string.IsNullOrWhiteSpace(value.Title) || string.IsNullOrWhiteSpace(value.Text))
+                throw new BusinessRuleException("عنوان و متن همهٔ ارزش‌ها الزامی است.");
+        }
+
+        foreach (var stat in input.Stats)
+        {
+            if (string.IsNullOrWhiteSpace(stat.Value) || string.IsNullOrWhiteSpace(stat.Label))
+                throw new BusinessRuleException("مقدار و برچسب همهٔ آمارها الزامی است.");
+        }
+
+        using var scope = _scopes.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdviehchinDbContext>();
+        var row = await db.Set<StoreAboutPage>().FirstOrDefaultAsync();
+        if (row is null)
+        {
+            row = new StoreAboutPage();
+            db.Add(row);
+        }
+
+        row.Title = input.Title.Trim();
+        row.Lead = input.Lead.Trim();
+        row.StoryTitle = input.StoryTitle.Trim();
+        row.StoryBody = input.StoryBody.Trim();
+        row.ImageUrl = string.IsNullOrWhiteSpace(input.ImageUrl) ? null : input.ImageUrl.Trim();
+        row.ValuesJson = JsonSerializer.Serialize(input.Values);
+        row.StatsJson = JsonSerializer.Serialize(input.Stats);
+        row.UpdatedAt = DateTime.Now;
+
         await db.SaveChangesAsync();
     }
 }

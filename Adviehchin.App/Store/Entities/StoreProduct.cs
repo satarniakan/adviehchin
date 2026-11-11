@@ -29,6 +29,9 @@ public class StoreProduct : AuditableEntity
     public bool IsActive { get; set; } = true;
     public bool IsFeatured { get; set; }
 
+    /// <summary>مدیر محصول را دستی غیرفعال کرده؛ همگام‌سازی نباید آن را دوباره فعال کند.</summary>
+    public bool IsManuallyDeactivated { get; set; }
+
     /// <summary>میانگین امتیاز نمایشی (نظرات واقعی در نسخهٔ بعدی).</summary>
     public double Rating { get; set; } = 4.6;
     public int ReviewCount { get; set; }

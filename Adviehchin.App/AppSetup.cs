@@ -21,7 +21,8 @@ public sealed class AppPermissionCatalog : IPermissionCatalog
     [
         new(StorePermissions.Products, "مدیریت محصولات فروشگاه", "فروشگاه"),
         new(StorePermissions.Categories, "مدیریت دسته‌های فروشگاه", "فروشگاه"),
-        new(StorePermissions.Orders, "مدیریت سفارش‌های فروشگاه", "فروشگاه")
+        new(StorePermissions.Orders, "مدیریت سفارش‌های فروشگاه", "فروشگاه"),
+        new(StorePermissions.About, "مدیریت صفحهٔ درباره ما", "فروشگاه")
     ];
 }
 
@@ -83,7 +84,8 @@ public sealed class AppNavProvider : INavProvider
         NavItem.Group("فروشگاه", "bi-shop",
             NavItem.Link("محصولات", "admin/store/products", "bi-box-seam", StorePermissions.Products),
             NavItem.Link("دسته‌ها", "admin/store/categories", "bi-tags", StorePermissions.Categories),
-            NavItem.Link("سفارش‌ها", "admin/store/orders", "bi-receipt", StorePermissions.Orders)),
+            NavItem.Link("سفارش‌ها", "admin/store/orders", "bi-receipt", StorePermissions.Orders),
+            NavItem.Link("درباره ما", "admin/store/about", "bi-info-circle", StorePermissions.About)),
 
         // مدیریت کاربران، مجوزها و پیام‌رسانی
         NavItem.Group("مدیریت", "bi-shield-lock",

@@ -1,0 +1,100 @@
+@inject CartState Cart
+@implements IDisposable
+
+<div class="st-cart-scrim" data-cart-close aria-hidden="true"></div>
+
+<aside class="st-cart-drawer" role="dialog" aria-modal="true" aria-label="سبد خرید">
+    <div class="st-cart-drawer-head">
+        <h3>
+            <i class="bi bi-bag" aria-hidden="true"></i>
+            سبد خرید
+            @if (Cart.TotalQuantity > 0)
+            {
+                <span class="st-cart-drawer-count">@StoreText.PersianDigits(Cart.TotalQuantity.ToString()) کالا</span>
+            }
+        </h3>
+        <button type="button" class="st-cart-drawer-close" data-cart-close aria-label="بستن سبد خرید">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    @if (Cart.IsEmpty)
+    {
+        <div class="st-cart-drawer-empty st-brand-empty">
+            <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Large" />
+            <span class="st-brand-empty-label">پیشنهاد عطار ادویه‌چین</span>
+            <h4>سبدتان هنوز عطر نگرفته!</h4>
+            <p>هنوز کالایی انتخاب نکرده‌اید. بیایید برای غذای بعدی‌تان یک طعم تازه پیدا کنیم.</p>
+            <a class="st-btn" href="/shop" data-cart-close>گشتی در فروشگاه <i class="bi bi-arrow-left" aria-hidden="true"></i></a>
+        </div>
+    }
+    else
+    {
+        <div class="st-cart-drawer-body">
+            @foreach (var line in Cart.Lines)
+            {
+                <div class="st-drawer-line" @key="@(line.ProductId + "-" + line.VariantId + "-" + line.Packaging)">
+                    <a class="st-drawer-img" href="@($"/product/{line.Slug}")" data-cart-close>
+                        <img src="@(line.ImageUrl ?? "/images/store/products/saffron.jpg")" alt="@line.Name" loading="lazy" />
+                    </a>
+                    <div class="st-drawer-info">
+                        <a class="st-drawer-name" href="@($"/product/{line.Slug}")" data-cart-close>@line.Name</a>
+                        <div class="st-drawer-sub">@line.Unit · @StoreText.Price(line.UnitPriceTomans)</div>
+                        <PackagingTag Key="@line.Packaging" />
+                        <div class="st-drawer-row">
+                            <div class="st-qty">
+                                <button type="button" disabled="@(line.Quantity <= 1)" @onclick="() => ChangeAsync(line, -1)" aria-label="کاهش تعداد">
+                                    <i class="bi bi-dash" aria-hidden="true"></i>
+                                </button>
+                                <span>@StoreText.PersianDigits(line.Quantity.ToString())</span>
+                                <button type="button" disabled="@(line.Quantity >= Math.Min(99, line.StockQuantity))" @onclick="() => ChangeAsync(line, 1)" aria-label="افزایش تعداد">
+                                    <i class="bi bi-plus" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="st-drawer-remove" @onclick="() => RemoveAsync(line)" aria-label="حذف @line.Name">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="st-drawer-total">@StoreText.Price(line.LineTotalTomans)</div>
+                </div>
+            }
+        </div>
+
+        <div class="st-cart-drawer-foot">
+            <div class="st-drawer-subtotal">
+                <span>جمع کالاها</span>
+                <strong>@StoreText.Price(Cart.SubtotalTomans)</strong>
+            </div>
+            <p class="st-drawer-shipnote">
+                <i class="bi bi-truck" aria-hidden="true"></i>
+                ارسال رایگان برای خرید بالای ۲٬۰۰۰٬۰۰۰ تومان
+            </p>
+            <a class="st-btn st-drawer-checkout" href="/checkout" data-cart-close>
+                تسویه حساب <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            </a>
+            <a class="st-btn st-btn-ghost st-drawer-fullcart" href="/cart" data-cart-close>مشاهده سبد کامل</a>
+        </div>
+    }
+</aside>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        Cart.Changed += OnCartChanged;
+        await Cart.InitializeAsync();
+        StateHasChanged();
+    }
+
+    private void OnCartChanged() => InvokeAsync(StateHasChanged);
+
+    private Task ChangeAsync(CartLine line, int delta)
+        => Cart.SetQuantityAsync(line.ProductId, line.VariantId, line.Quantity + delta, line.Packaging);
+
+    private Task RemoveAsync(CartLine line)
+        => Cart.RemoveAsync(line.ProductId, line.VariantId, line.Packaging);
+
+    public void Dispose() => Cart.Changed -= OnCartChanged;
+}

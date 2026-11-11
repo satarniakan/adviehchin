@@ -92,7 +92,7 @@ else
                 @if (variants.Count > 0)
                 {
                     <div class="st-variant-picker">
-                        <div class="st-variant-title">انتخاب بسته‌بندی و وزن</div>
+                        <div class="st-variant-title">انتخاب وزن</div>
                         <div class="st-variant-list">
                             @foreach (var variant in variants)
                             {
@@ -111,6 +111,52 @@ else
                         </div>
                     </div>
                 }
+
+                <div class="st-pack-picker">
+                    <div class="st-variant-title">انتخاب نوع بسته‌بندی</div>
+                    <div class="st-pack-grid" role="radiogroup" aria-label="نوع بسته‌بندی">
+                        @foreach (var option in StorePackaging.All)
+                        {
+                            <button type="button"
+                                    class="st-pack-option @(selectedPackaging == option.Key ? "is-active" : "")"
+                                    role="radio"
+                                    aria-checked="@(selectedPackaging == option.Key ? "true" : "false")"
+                                    @onclick="() => selectedPackaging = option.Key">
+                                <span class="st-pack-icon"><i class="bi @option.Icon" aria-hidden="true"></i></span>
+                                <span class="st-pack-name">@option.Title</span>
+                                <span class="st-pack-summary">@option.Summary</span>
+                                <span class="st-pack-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="st-pack-guide">
+                        <div class="st-pack-guide-head">
+                            <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Small" Class="st-pack-guide-mascot" />
+                            <div class="st-pack-guide-speech">
+                                <span class="st-pack-guide-eyebrow">راهنمای بسته‌بندی با عطار ادویه‌چین</span>
+                                <strong>برای هر سلیقه، یک بسته‌بندی!</strong>
+                                <p>برای مصرف روزمره، معمولی؛ برای بانکه‌های آشپزخانه، آمیرزا؛ برای یک هدیهٔ ویژه، شاهپسند. انتخاب با شماست!</p>
+                            </div>
+                        </div>
+                        <ul class="st-pack-guide-list">
+                            @foreach (var option in StorePackaging.All)
+                            {
+                                <li class="st-pack-guide-item @(selectedPackaging == option.Key ? "is-active" : "")">
+                                    <span class="st-pack-guide-icon"><i class="bi @option.Icon" aria-hidden="true"></i></span>
+                                    <div>
+                                        <strong>@option.Title</strong>
+                                        <p>@option.Guide</p>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                        <p class="st-pack-guide-note">
+                            <i class="bi bi-tag" aria-hidden="true"></i>
+                            نوع بسته‌بندی تغییری در قیمت ندارد؛ قیمت محصول بر اساس وزن انتخابی شما محاسبه می‌شود.
+                        </p>
+                    </div>
+                </div>
 
                 <div class="st-product-price-box">
                     <div>
@@ -176,7 +222,7 @@ else
                 }
 
                 <div class="st-product-extra">
-                    <span><i class="bi bi-truck"></i> ارسال رایگان بالای ۵۰۰ هزار تومان</span>
+                    <span><i class="bi bi-truck"></i> ارسال رایگان بالای ۲ میلیون تومان</span>
                     <span><i class="bi bi-shield-check"></i> تضمین اصالت و تازگی</span>
                     <span><i class="bi bi-arrow-repeat"></i> ۷ روز ضمانت بازگشت</span>
                     <span><i class="bi bi-cash-coin"></i> پرداخت در محل یا آنلاین</span>
@@ -202,7 +248,8 @@ else
                 <table class="st-spec-table">
                     <tbody>
                         <tr><th>دسته‌بندی</th><td>@(product.Category?.Name ?? "—")</td></tr>
-                        <tr><th>بسته‌بندی و وزن</th><td>@(selectedVariant?.Title ?? product.Unit)</td></tr>
+                        <tr><th>وزن</th><td>@(selectedVariant?.Title ?? product.Unit)</td></tr>
+                        <tr><th>نوع بسته‌بندی</th><td>@StorePackaging.Get(selectedPackaging).Title</td></tr>
                         <tr><th>کد کالا (SKU)</th><td dir="ltr">@(product.Sku ?? "—")</td></tr>
                         <tr><th>موجودی انبار</th><td>@StoreText.PersianDigits(product.StockQuantity.ToString()) عدد</td></tr>
                         <tr><th>امتیاز کاربران</th><td>@StoreText.PersianDigits(product.Rating.ToString("0.0")) از ۵ (@StoreText.PersianDigits(product.ReviewCount.ToString()) نظر)</td></tr>
@@ -213,7 +260,7 @@ else
             {
                 <div class="st-tab-body">
                     ارسال سفارش‌ها در تهران معمولاً ۱ تا ۲ روز کاری و در سایر شهرها ۲ تا ۴ روز کاری زمان می‌برد.
-                    هزینهٔ ارسال ۴۵٬۰۰۰ تومان است و برای سفارش‌های بالای ۵۰۰٬۰۰۰ تومان رایگان محاسبه می‌شود.
+                    هزینهٔ ارسال ۴۵٬۰۰۰ تومان است و برای سفارش‌های بالای ۲٬۰۰۰٬۰۰۰ تومان رایگان محاسبه می‌شود.
                     در صورت نارضایتی از کیفیت، تا ۷ روز پس از دریافت امکان بازگشت کالا وجود دارد.
                 </div>
             }
@@ -247,6 +294,7 @@ else
     private IReadOnlyList<StoreProduct> related = [];
     private IReadOnlyList<StoreProductVariant> variants = [];
     private StoreProductVariant? selectedVariant;
+    private string selectedPackaging = StorePackaging.DefaultKey;
     private List<string> gallery = [];
     private string selectedImage = string.Empty;
     private int Quantity = 1;
@@ -272,6 +320,7 @@ else
         gallery = [];
         variants = [];
         selectedVariant = null;
+        selectedPackaging = StorePackaging.DefaultKey;
         Quantity = 1;
         tab = 0;
 
@@ -319,7 +368,7 @@ else
         busy = true;
         try
         {
-            await Cart.AddAsync(product, selectedVariant, Quantity);
+            await Cart.AddAsync(product, selectedVariant, Quantity, selectedPackaging);
             Toast.ShowSuccess("محصول به سبد خرید اضافه شد.");
         }
         finally
@@ -334,7 +383,7 @@ else
         busy = true;
         try
         {
-            await Cart.AddAsync(product, selectedVariant, Quantity);
+            await Cart.AddAsync(product, selectedVariant, Quantity, selectedPackaging);
             Nav.NavigateTo("/cart");
         }
         finally

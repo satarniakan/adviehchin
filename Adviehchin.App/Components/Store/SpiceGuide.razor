@@ -1,0 +1,51 @@
+<section class="st-spice-guide" aria-labelledby="spice-guide-title">
+    <div class="st-spice-guide-intro">
+        <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Large" />
+        <div>
+            <span class="st-brand-empty-label">با راهنمایی عطار ادویه‌چین</span>
+            <h2 id="spice-guide-title">چی می‌پزی؟ ادویه‌اش با من!</h2>
+            <p>نوع غذایت را انتخاب کن تا چند همراه خوش‌عطر پیشنهاد بدهم.</p>
+        </div>
+    </div>
+    <div class="st-spice-guide-choices" role="group" aria-label="انتخاب نوع غذا">
+        @for (var index = 0; index < spiceGuides.Length; index++)
+        {
+            var choice = index;
+            <button type="button" class="st-spice-guide-choice @(selectedGuide == choice ? "is-active" : "")"
+                    aria-pressed="@(selectedGuide == choice ? "true" : "false")" aria-controls="spice-guide-result"
+                    @onclick="() => selectedGuide = choice">@spiceGuides[choice].Food</button>
+        }
+    </div>
+    <div id="spice-guide-result" class="st-spice-guide-result" aria-live="polite" aria-atomic="true">
+        <h3>پیشنهاد من برای @CurrentGuide.Food</h3>
+        <p>@CurrentGuide.Tip</p>
+        <div class="st-spice-guide-products">
+            @foreach (var spice in CurrentGuide.Spices)
+            {
+                <a href="@($"/shop?q={Uri.EscapeDataString(spice)}")" target="@(OpenProductsInNewTab ? "_blank" : null)" rel="@(OpenProductsInNewTab ? "noopener" : null)">
+                    <span>@spice</span><span class="st-spice-guide-buy">دیدن محصولات <i class="bi bi-arrow-left" aria-hidden="true"></i></span>
+                </a>
+            }
+        </div>
+        <small>این‌ها پیشنهادهای جداگانه‌اند؛ لازم نیست همه را با هم استفاده کنی. از مقدار کم شروع کن و با ذائقه‌ات تنظیم کن.</small>
+        @if (OpenProductsInNewTab)
+        {
+            <small>محصولات در برگهٔ جدید باز می‌شوند تا اطلاعات تسویه‌حساب شما حفظ شود.</small>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter] public bool OpenProductsInNewTab { get; set; }
+    private int selectedGuide;
+    private SpiceGuideOption CurrentGuide => spiceGuides[selectedGuide];
+    private sealed record SpiceGuideOption(string Food, string Tip, string[] Spices);
+    private readonly SpiceGuideOption[] spiceGuides =
+    [
+        new("مرغ و ماهی", "برای رنگ و عطر ملایم، پاپریکا و زردچوبه را امتحان کن؛ پودر سیر هم برای مزه‌دار کردن پیش از پخت همراه خوبی است.", ["پاپریکا", "زردچوبه", "پودر سیر"]),
+        new("پلو و خورش", "زردچوبه را کوتاه با مواد تفت بده تا نسوزد؛ دارچین را کم‌کم اضافه کن تا عطرش بر بقیه طعم‌ها غلبه نکند.", ["زردچوبه", "دارچین", "فلفل سیاه"]),
+        new("کباب و گوشت", "فلفل سیاه برای مزه‌دار کردن و سماق برای طعم ترش کنار کباب مناسب‌اند؛ زیره را هم اگر عطر گرم دوست داری، کم امتحان کن.", ["فلفل سیاه", "سماق", "زیره"]),
+        new("سیب‌زمینی و سبزیجات", "پاپریکا برای رنگ، پودر سیر برای عطر و آویشن برای پایان پخت؛ با مقدار کم شروع کن تا طعم خود سبزیجات هم بماند.", ["پاپریکا", "پودر سیر", "آویشن"]),
+        new("دسر و شیرینی", "هل و دارچین عطرهای پرقدرتی دارند؛ کم اضافه کن و بچش. زنجبیل هم برای شیرینی‌هایی با طعم گرم و کمی تند انتخاب خوبی است.", ["هل", "دارچین", "زنجبیل"])
+    ];
+}

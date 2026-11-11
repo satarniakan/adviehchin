@@ -62,6 +62,10 @@ public class StoreOrderItem : AuditableEntity
     public string? VariantTitle { get; set; }
 
     public string Unit { get; set; } = string.Empty;
+
+    /// <summary>کلید نوع بسته‌بندی انتخابی مشتری؛ برای سفارش‌های پیش از این قابلیت null است.</summary>
+    public string? Packaging { get; set; }
+
     public string? ImageUrl { get; set; }
     public long UnitPriceTomans { get; set; }
     public int Quantity { get; set; }

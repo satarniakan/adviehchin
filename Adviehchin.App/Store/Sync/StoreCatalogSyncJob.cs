@@ -17,11 +17,16 @@ public sealed class StoreCatalogSyncJob : IRecurringJob
     public TimeSpan Interval => TimeSpan.FromHours(12);
 
     private readonly IStoreCatalogSyncService _syncService;
+    private readonly IServiceProvider _services;
     private readonly ILogger<StoreCatalogSyncJob> _logger;
 
-    public StoreCatalogSyncJob(IStoreCatalogSyncService syncService, ILogger<StoreCatalogSyncJob> logger)
+    public StoreCatalogSyncJob(
+        IStoreCatalogSyncService syncService,
+        IServiceProvider services,
+        ILogger<StoreCatalogSyncJob> logger)
     {
         _syncService = syncService;
+        _services = services;
         _logger = logger;
     }
 
@@ -33,6 +38,16 @@ public sealed class StoreCatalogSyncJob : IRecurringJob
             _logger.LogInformation(
                 "همگام‌سازی زمان‌بندی‌شدهٔ کاتالوگ در {Seconds:0.0}s انجام شد (اولین اجرا: {First})",
                 result.Duration.TotalSeconds, result.IsFirstSync);
+
+            // اولین همگام‌سازی محصولات محلی را غیرفعال می‌کند؛ پک‌های قومی باید برگردند.
+            try
+            {
+                await Adviehchin.App.Store.Seed.StoreSeeder.EnsureEthnicPacksAsync(_services);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogWarning(ex, "بازسازی پک‌های قومی پس از همگام‌سازی ناموفق بود");
+            }
         }
         catch (BusinessRuleException ex)
         {

@@ -23,6 +23,10 @@
 
         <form method="post" action="/Account/RequestOtp" data-enhance="false">
             <AntiforgeryToken />
+            @if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            }
 
             <div class="mb-4">
                 <label class="form-label">شماره موبایل</label>
@@ -50,6 +54,9 @@
 @code {
     [SupplyParameterFromQuery(Name = "error")]
     private string? Error { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    private string? ReturnUrl { get; set; }
 
     [Inject] private Adviehchin.Application.Services.ISettingService Settings { get; set; } = default!;
 

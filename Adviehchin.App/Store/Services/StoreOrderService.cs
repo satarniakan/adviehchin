@@ -23,7 +23,7 @@ public interface IStoreOrderService
 
 public sealed class StoreOrderService : IStoreOrderService
 {
-    public const long FreeShippingThresholdTomans = 500_000;
+    public const long FreeShippingThresholdTomans = 2_000_000;
     public const long ShippingCostTomans = 45_000;
 
     private readonly IServiceScopeFactory _scopes;
@@ -76,7 +76,7 @@ public sealed class StoreOrderService : IStoreOrderService
                 else if (product.Variants.Any(v => v.IsActive))
                 {
                     throw new BusinessRuleException(
-                        $"برای «{product.Name}» ابتدا بسته‌بندی و وزن را انتخاب کنید.");
+                        $"برای «{product.Name}» ابتدا وزن را انتخاب کنید.");
                 }
 
                 var available = variant?.StockQuantity ?? product.StockQuantity;
@@ -97,6 +97,7 @@ public sealed class StoreOrderService : IStoreOrderService
                     ProductName = product.Name,
                     VariantTitle = variant?.Title,
                     Unit = product.Unit,
+                    Packaging = StorePackaging.Normalize(line.Packaging),
                     ImageUrl = product.ImageUrl,
                     UnitPriceTomans = unitPrice,
                     Quantity = line.Quantity,

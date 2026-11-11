@@ -1,5 +1,6 @@
 using Adviehchin.App.Store.Entities;
 using Adviehchin.App.Store.Models;
+using Adviehchin.App.Store.Seed;
 using Adviehchin.Application.DTOs;
 using Adviehchin.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ public interface IStoreCatalogService
     Task<IReadOnlyList<StoreProduct>> GetOnSaleAsync(int take = 4);
     Task<IReadOnlyList<StoreProduct>> GetByCategoryAsync(string categorySlug, int take = 4);
     Task<IReadOnlyList<StoreProduct>> GetRelatedAsync(int categoryId, int excludeProductId, int take = 4);
+    Task<AboutContent> GetAboutAsync();
 }
 
 /// <summary>
@@ -104,7 +106,7 @@ public sealed class StoreCatalogService : IStoreCatalogService
     public Task<StoreProduct?> GetProductByIdAsync(int id) =>
         WithDbAsync(db => db.Set<StoreProduct>().AsNoTracking()
             .Include(p => p.Category)
-            .FirstOrDefaultAsync(p => p.Id == id));
+            .FirstOrDefaultAsync(p => p.Id == id && p.IsActive));
 
     public Task<IReadOnlyList<StoreProduct>> GetFeaturedAsync(int take = 8) =>
         WithDbAsync<IReadOnlyList<StoreProduct>>(async db =>
@@ -146,4 +148,11 @@ public sealed class StoreCatalogService : IStoreCatalogService
                 .OrderByDescending(p => p.IsFeatured).ThenByDescending(p => p.Id)
                 .Take(take)
                 .ToListAsync());
+
+    public Task<AboutContent> GetAboutAsync() =>
+        WithDbAsync(async db =>
+        {
+            var row = await db.Set<StoreAboutPage>().AsNoTracking().FirstOrDefaultAsync();
+            return (row ?? StoreAboutDefaults.Create()).ToContent();
+        });
 }

@@ -265,7 +265,8 @@ public sealed class StoreCatalogSyncService : IStoreCatalogSyncService
                 product = new StoreProduct
                 {
                     ExternalId = source.Id,
-                    Slug = UniqueSlug(source.Slug, source.Id, usedProductSlugs, 200)
+                    Slug = UniqueSlug(source.Slug, source.Id, usedProductSlugs, 200),
+                    ImageUrl = "/images/store/products/import-placeholder.jpg"
                 };
                 db.Add(product);
                 productsCreated++;
@@ -281,7 +282,9 @@ public sealed class StoreCatalogSyncService : IStoreCatalogSyncService
             product.Description = StoreSourceParsing.HtmlToPlainText(source.Description, 4000);
             product.Rating = source.Rating;
             product.ReviewCount = source.ReviewCount;
-            product.IsActive = true;
+
+            if (!product.IsManuallyDeactivated)
+                product.IsActive = true;
 
             var categoryRef = source.Categories.FirstOrDefault();
             product.Category = categoryRef is not null &&

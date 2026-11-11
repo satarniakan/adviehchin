@@ -1,0 +1,195 @@
+@page "/admin/store/about"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = StorePermissions.About)]
+@inherits AppComponentBase
+@using System.Globalization
+@inject IStoreAdminService Admin
+<PageTitle>مدیریت صفحهٔ درباره ما</PageTitle>
+
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">صفحهٔ «درباره ما»</h3>
+        <div class="text-body-secondary small">محتوای صفحهٔ عمومی دربارهٔ فروشگاه؛ تغییرات پس از ذخیره بلافاصله منتشر می‌شوند.</div>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" href="/about" target="_blank" rel="noopener">
+        <i class="bi bi-box-arrow-up-left me-1"></i> مشاهده در فروشگاه
+    </a>
+</div>
+
+@if (form is null)
+{
+    <LoadingSkeleton />
+}
+else
+{
+    <EditForm Model="form" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <div class="card-panel mb-3">
+                    <h5 class="mb-3"><i class="bi bi-flag me-1"></i> سربرگ صفحه</h5>
+                    <div class="mb-3">
+                        <label class="form-label">عنوان صفحه <span class="text-danger">*</span></label>
+                        <InputText class="form-control" @bind-Value="form.Title" />
+                        <ValidationMessage For="() => form.Title" />
+                    </div>
+                    <div>
+                        <label class="form-label">متن سربرگ <span class="text-danger">*</span></label>
+                        <InputTextArea class="form-control" rows="2" @bind-Value="form.Lead" />
+                        <ValidationMessage For="() => form.Lead" />
+                    </div>
+                </div>
+
+                <div class="card-panel mb-3">
+                    <h5 class="mb-3"><i class="bi bi-book me-1"></i> داستان ما</h5>
+                    <div class="mb-3">
+                        <label class="form-label">عنوان داستان <span class="text-danger">*</span></label>
+                        <InputText class="form-control" @bind-Value="form.StoryTitle" />
+                        <ValidationMessage For="() => form.StoryTitle" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">متن داستان <span class="text-danger">*</span></label>
+                        <InputTextArea class="form-control" rows="8" @bind-Value="form.StoryBody" />
+                        <div class="form-text">هر پاراگراف را با یک خط خالی جدا کنید.</div>
+                        <ValidationMessage For="() => form.StoryBody" />
+                    </div>
+                    <div>
+                        <label class="form-label">نشانی تصویر داستان</label>
+                        <InputText class="form-control" @bind-Value="form.ImageUrl" dir="ltr" placeholder="/images/store/hero-spices.jpg" />
+                        <ValidationMessage For="() => form.ImageUrl" />
+                    </div>
+                </div>
+
+                <div class="card-panel mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-heart me-1"></i> ارزش‌ها و قول‌ها</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary" disabled="@(form.Values.Count >= 8)" @onclick="AddValue">
+                            <i class="bi bi-plus-lg"></i> افزودن
+                        </button>
+                    </div>
+                    @if (form.Values.Count == 0)
+                    {
+                        <div class="text-body-secondary small">ارزشی ثبت نشده؛ بخش «چرا ادویه‌چین» در صفحهٔ عمومی نمایش داده نمی‌شود.</div>
+                    }
+                    @for (var i = 0; i < form.Values.Count; i++)
+                    {
+                        var idx = i;
+                        var value = form.Values[idx];
+                        <div class="border rounded-3 p-3 mb-2" @key="value">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label small">آیکون</label>
+                                    <InputSelect class="form-select" @bind-Value="form.Values[idx].Icon">
+                                        @foreach (var icon in AboutIcons.All)
+                                        {
+                                            <option value="@icon.Key">@icon.Label</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label small">عنوان</label>
+                                    <InputText class="form-control" @bind-Value="form.Values[idx].Title" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small">متن</label>
+                                    <InputTextArea class="form-control" rows="2" @bind-Value="form.Values[idx].Text" />
+                                </div>
+                            </div>
+                            <div class="text-end mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveValue(value)">
+                                    <i class="bi bi-trash"></i> حذف
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-bar-chart me-1"></i> آمارهای صفحه</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary" disabled="@(form.Stats.Count >= 6)" @onclick="AddStat">
+                            <i class="bi bi-plus-lg"></i> افزودن
+                        </button>
+                    </div>
+                    @if (form.Stats.Count == 0)
+                    {
+                        <div class="text-body-secondary small">آماری ثبت نشده؛ نوار آمار نمایش داده نمی‌شود.</div>
+                    }
+                    @for (var i = 0; i < form.Stats.Count; i++)
+                    {
+                        var idx = i;
+                        var stat = form.Stats[idx];
+                        <div class="border rounded-3 p-3 mb-2" @key="stat">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label small">مقدار (مثل ۷ روز)</label>
+                                    <InputText class="form-control" @bind-Value="form.Stats[idx].Value" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">برچسب</label>
+                                    <InputText class="form-control" @bind-Value="form.Stats[idx].Label" />
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveStat(stat)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-panel">
+                    <h5 class="mb-2">انتشار</h5>
+                    <p class="small text-body-secondary">پس از ذخیره، تغییرات بلافاصله در صفحهٔ عمومی دیده می‌شوند.</p>
+                    <button type="submit" class="btn btn-primary w-100" disabled="@saving">
+                        @if (saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                        }
+                        ذخیره تغییرات
+                    </button>
+                    @if (form.UpdatedAt != default)
+                    {
+                        <div class="small text-body-secondary mt-3">
+                            آخرین به‌روزرسانی:
+                            @StoreText.PersianDigits(form.UpdatedAt.ToString("yyyy/MM/dd HH:mm", CultureInfo.GetCultureInfo("fa-IR")))
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@code {
+    private AboutAdminInput? form;
+    private bool saving;
+
+    protected override Task OnInitializedAsync() => RunSafe(async () =>
+    {
+        form = await Admin.GetAboutInputAsync();
+    });
+
+    private Task SaveAsync() => RunSafe(async () =>
+    {
+        saving = true;
+        try
+        {
+            await Admin.SaveAboutAsync(form!);
+            Toast.ShowSuccess("صفحهٔ درباره ما ذخیره شد.");
+            form = await Admin.GetAboutInputAsync();
+        }
+        finally
+        {
+            saving = false;
+        }
+    });
+
+    private void AddValue() => form!.Values.Add(new AboutValueItem());
+    private void RemoveValue(AboutValueItem item) => form!.Values.Remove(item);
+    private void AddStat() => form!.Stats.Add(new AboutStatItem());
+    private void RemoveStat(AboutStatItem item) => form!.Stats.Remove(item);
+}

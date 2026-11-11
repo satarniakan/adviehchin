@@ -85,6 +85,12 @@ await app.Services.InitializeAdviehchinAsync();
 
 // دادهٔ نمونهٔ فروشگاه (فقط بار اول که دیتابیس خالی است)
 await Adviehchin.App.Store.Seed.StoreSeeder.SeedAsync(app.Services);
+
+// پک‌های قومی محصول محلی‌اند؛ در هر استارتاپ وجودشان تضمین می‌شود.
+await Adviehchin.App.Store.Seed.StoreSeeder.EnsureEthnicPacksAsync(app.Services);
+
+// صفحهٔ درباره ما: ردیف محتوا در صورت نبود ساخته می‌شود.
+await Adviehchin.App.Store.Seed.StoreSeeder.EnsureAboutAsync(app.Services);
 app.UseSerilogRequestLogging();
 
 app.UseRequestLocalization(AdviehchinSetup.PersianLocalization());
@@ -95,6 +101,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<OptimizedImageMiddleware>();
 app.UseStaticFiles();
 app.UseOutputCache();
 

@@ -1,0 +1,10 @@
+@if (!string.IsNullOrWhiteSpace(Key))
+{
+    var option = StorePackaging.Get(Key);
+    <span class="st-pack-tag"><i class="bi @option.Icon" aria-hidden="true"></i> بسته‌بندی @option.Title</span>
+}
+
+@code {
+    [Parameter]
+    public string? Key { get; set; }
+}

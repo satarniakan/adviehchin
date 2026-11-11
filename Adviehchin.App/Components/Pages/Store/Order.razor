@@ -20,19 +20,9 @@
     {
         <div class="st-success">
             <div class="st-success-banner">
-                <div class="st-success-icon">
-                    <i class="bi @(order.Status == StoreOrderStatus.Paid ? "bi-check-lg" : "bi-bag-check")"></i>
-                </div>
-                @if (order.Status == StoreOrderStatus.Paid)
-                {
-                    <h1>پرداخت شما با موفقیت انجام شد</h1>
-                    <p>سفارش ثبت شد و به‌زودی برای آماده‌سازی و ارسال آن با شما تماس می‌گیریم.</p>
-                }
-                else
-                {
-                    <h1>سفارش شما با موفقیت ثبت شد</h1>
-                    <p>سفارش در حال آماده‌سازی است. مبلغ را هنگام تحویل، به مأمور ارسال پرداخت می‌کنید.</p>
-                }
+                <StoreMascot Expression="@OrderExpression" Size="MascotSize.Large" Class="st-mascot-center" />
+                <h1>@OrderTitle</h1>
+                <p>@OrderMessage</p>
                 <div class="st-order-code">
                     <i class="bi bi-hash"></i>
                     <span>@order.OrderNumber</span>
@@ -55,6 +45,7 @@
                             <div>
                                 <div class="st-order-item-name">@item.ProductName</div>
                                 <div class="st-order-item-meta">@(item.VariantTitle ?? item.Unit) · @StoreText.PersianDigits(item.Quantity.ToString()) عدد</div>
+                                <PackagingTag Key="@item.Packaging" />
                             </div>
                             <span class="st-order-item-price">@StoreText.Price(item.LineTotalTomans)</span>
                         </div>
@@ -112,6 +103,36 @@
 
     private StoreOrder? order;
     private bool hasFullAccess;
+
+    private MascotExpression OrderExpression => order?.Status switch
+    {
+        StoreOrderStatus.PendingPayment => MascotExpression.Pensive,
+        StoreOrderStatus.Shipped => MascotExpression.Running,
+        StoreOrderStatus.Cancelled => MascotExpression.Sad,
+        _ => MascotExpression.Happy
+    };
+
+    private string OrderTitle => order?.Status switch
+    {
+        StoreOrderStatus.PendingPayment => "سفارش ثبت شد؛ منتظر پرداخت هستیم",
+        StoreOrderStatus.Paid => "پرداخت شما با موفقیت انجام شد",
+        StoreOrderStatus.Processing => "سفارش شما در حال آماده‌سازی است",
+        StoreOrderStatus.Shipped => "سفارش شما راهی شده است!",
+        StoreOrderStatus.Delivered => "سفارش به دستتان رسید؛ نوش جان!",
+        StoreOrderStatus.Cancelled => "این سفارش لغو شده است",
+        _ => "وضعیت سفارش شما"
+    };
+
+    private string OrderMessage => order?.Status switch
+    {
+        StoreOrderStatus.PendingPayment => "عطار سفارش شما را به خاطر سپرده؛ پرداخت این سفارش هنوز تأیید نشده است.",
+        StoreOrderStatus.Paid => "از اعتمادتان ممنونیم! یک قدم به عطر و طعم تازه نزدیک‌تر شدید.",
+        StoreOrderStatus.Processing => "از خریدتان ممنونیم! داریم سفارش خوش‌عطرتان را برای ارسال آماده می‌کنیم.",
+        StoreOrderStatus.Shipped => "عطار خبر خوش دارد: سفارش ارسال شده است. وضعیت ثبت‌شدهٔ سفارش را همین‌جا ببینید.",
+        StoreOrderStatus.Delivered => "ممنون که ادویه‌چین را مهمان آشپزخانه‌تان کردید؛ امیدواریم سفره‌تان همیشه خوش‌عطر باشد.",
+        StoreOrderStatus.Cancelled => "اگر دربارهٔ لغو سفارش پرسشی دارید، از بخش تماس با ما با فروشگاه در ارتباط باشید.",
+        _ => "آخرین وضعیت ثبت‌شدهٔ سفارش در این صفحه نمایش داده می‌شود."
+    };
 
     private string DisplayName =>
         hasFullAccess || order is null ? order?.CustomerName ?? "" : MaskName(order.CustomerName);

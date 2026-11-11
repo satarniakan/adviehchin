@@ -97,6 +97,7 @@ public sealed class StoreModule : IAdviehchinModule
             e.Property(x => x.ProductName).HasMaxLength(200).IsRequired();
             e.Property(x => x.VariantTitle).HasMaxLength(200);
             e.Property(x => x.Unit).HasMaxLength(50).IsRequired();
+            e.Property(x => x.Packaging).HasMaxLength(30);
             e.Property(x => x.ImageUrl).HasMaxLength(500);
             e.HasIndex(x => x.OrderId);
             e.HasIndex(x => x.VariantId);
@@ -110,6 +111,18 @@ public sealed class StoreModule : IAdviehchinModule
                 // SetNull اینجا مجاز نیست: محصول→گزینه cascade است و آیتم سفارش هم از
                 // محصول SetNull می‌گیرد؛ SQL Server دو مسیر آبشاری را رد می‌کند.
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        builder.Entity<StoreAboutPage>(e =>
+        {
+            e.ToTable("StoreAboutPages");
+            e.Property(x => x.Title).HasMaxLength(150).IsRequired();
+            e.Property(x => x.Lead).HasMaxLength(600).IsRequired();
+            e.Property(x => x.StoryTitle).HasMaxLength(150).IsRequired();
+            e.Property(x => x.StoryBody).IsRequired();
+            e.Property(x => x.ImageUrl).HasMaxLength(500);
+            e.Property(x => x.ValuesJson).IsRequired();
+            e.Property(x => x.StatsJson).IsRequired();
         });
     }
 }

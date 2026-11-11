@@ -7,7 +7,7 @@
         <div class="st-container st-topbar-inner">
             <div class="st-topbar-note">
                 <i class="bi bi-truck"></i>
-                <span>ارسال رایگان برای خرید بالای ۵۰۰٬۰۰۰ تومان</span>
+                <span>ارسال رایگان برای خرید بالای ۲٬۰۰۰٬۰۰۰ تومان</span>
             </div>
             <div class="st-topbar-links">
                 <a href="/my-orders"><i class="bi bi-box-seam"></i> سفارش‌های من</a>
@@ -21,7 +21,7 @@
                     </NotAuthorized>
                 </AuthorizeView>
                 <span class="st-sep"></span>
-                <span dir="ltr"><i class="bi bi-telephone"></i> ۰۲۱-۰۰۰۰۰۰۰۰</span>
+                <span dir="ltr"><i class="bi bi-telephone"></i> ۰۹۱۲۵۹۹۳۳۹۶</span>
             </div>
         </div>
     </div>
@@ -32,7 +32,7 @@
                 <img class="st-logo-mark" src="/images/brand/adviehchin-logo.png" alt="" width="152" height="192" />
                 <span class="st-logo-text">
                     <strong>ادویه‌چین</strong>
-                    <small>عطر اصیل، طعم خانه</small>
+                    <small>چاشنی لحظه‌های خوشمزه</small>
                 </span>
             </a>
 
@@ -57,8 +57,12 @@
                     </NotAuthorized>
                 </AuthorizeView>
 
-                <a class="st-action st-action-cart" href="/cart">
+                <button type="button" class="st-action st-action-cart" data-cart-open aria-label="باز کردن سبد خرید">
                     <CartBadge @rendermode="InteractiveServer" />
+                </button>
+                <a class="st-header-guide" href="/recipes#spice-guide-title" aria-label="راهنمای انتخاب ادویه با عطار ادویه‌چین">
+                    <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Small" />
+                    <span><strong>چی می‌پزی؟</strong><small>راهنمایی‌ات کنم</small></span>
                 </a>
             </div>
         </div>
@@ -66,28 +70,36 @@
 
     <nav class="st-nav" aria-label="منوی اصلی">
         <div class="st-container st-nav-inner">
-            <a class="st-nav-link" href="/">خانه</a>
-            <a class="st-nav-link" href="/shop">فروشگاه</a>
-            @if (categories.Count > 0)
-            {
-                <div class="st-nav-dropdown">
-                    <a class="st-nav-link" href="/shop">دسته‌بندی‌ها <i class="bi bi-chevron-down"></i></a>
-                    <div class="st-nav-menu">
-                        @foreach (var category in categories)
-                        {
-                            <a href="@($"/shop?category={category.Slug}")">@category.Name</a>
-                        }
+            <input type="checkbox" id="st-nav-toggle" class="st-nav-toggle" />
+            <label for="st-nav-toggle" class="st-nav-burger">
+                <i class="bi bi-list"></i>
+                <span>منو</span>
+            </label>
+            <div class="st-nav-links">
+                <a class="st-nav-link" href="/">خانه</a>
+                <a class="st-nav-link" href="/shop">فروشگاه</a>
+                <a class="st-nav-link" href="/recipes">چی بپزم؟</a>
+                @if (categories.Count > 0)
+                {
+                    <div class="st-nav-dropdown">
+                        <a class="st-nav-link" href="/shop">دسته‌بندی‌ها <i class="bi bi-chevron-down"></i></a>
+                        <div class="st-nav-menu">
+                            @foreach (var category in categories)
+                            {
+                                <a href="@($"/shop?category={category.Slug}")">@category.Name</a>
+                            }
+                        </div>
                     </div>
-                </div>
-            }
-            <a class="st-nav-link" href="/shop?sort=discount">تخفیف‌های ویژه</a>
-            <a class="st-nav-link" href="/#why-us">درباره ما</a>
-            <a class="st-nav-link" href="/#contact">تماس با ما</a>
-            <AuthorizeView Roles="Admin">
-                <Authorized>
-                    <a class="st-nav-link st-nav-admin" href="/admin/store/products"><i class="bi bi-speedometer2"></i> مدیریت فروشگاه</a>
-                </Authorized>
-            </AuthorizeView>
+                }
+                <a class="st-nav-link" href="/shop?sort=discount">تخفیف‌های ویژه</a>
+                <a class="st-nav-link" href="/about">درباره ما</a>
+                <a class="st-nav-link" href="/#contact">تماس با ما</a>
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <a class="st-nav-link st-nav-admin" href="/admin/store/products"><i class="bi bi-speedometer2"></i> مدیریت فروشگاه</a>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
         </div>
     </nav>
 
@@ -100,7 +112,7 @@
             <div class="st-footer-col st-footer-about">
                 <a class="st-logo st-logo-footer" href="/">
                     <img class="st-logo-mark" src="/images/brand/adviehchin-logo.png" alt="" width="152" height="192" />
-                    <span class="st-logo-text"><strong>ادویه‌چین</strong><small>عطر اصیل، طعم خانه</small></span>
+                    <span class="st-logo-text"><strong>ادویه‌چین</strong><small>چاشنی لحظه‌های خوشمزه</small></span>
                 </a>
                 <p>
                     ادویه‌چین با انتخاب ادویه و سبزی خشک از کشاورزان و کارگاه‌های محلی،
@@ -118,6 +130,8 @@
                 <ul>
                     <li><a href="/">خانه</a></li>
                     <li><a href="/shop">فروشگاه</a></li>
+                    <li><a href="/about">درباره ما</a></li>
+                    <li><a href="/faq">پرسش‌های متداول</a></li>
                     <li><a href="/cart">سبد خرید</a></li>
                     <li><a href="/my-orders">سفارش‌های من</a></li>
                     <AuthorizeView>
@@ -144,10 +158,10 @@
             <div class="st-footer-col">
                 <h5>تماس با ما</h5>
                 <ul class="st-footer-contact">
-                    <li><i class="bi bi-geo-alt"></i> تهران، بازار ادویه، پلاک ۱۲</li>
-                    <li dir="ltr"><i class="bi bi-telephone"></i> ۰۲۱-۰۰۰۰۰۰۰۰</li>
+                    <li><i class="bi bi-geo-alt"></i> تهران، خیابان ۱۲ فروردین، بالاتر از تقاطع خیابان جمهوری</li>
+                    <li><i class="bi bi-telephone"></i> <span dir="ltr">۰۹۱۲۵۹۹۳۳۹۶</span></li>
                     <li><i class="bi bi-envelope"></i> info@adviehchin.ir</li>
-                    <li><i class="bi bi-clock"></i> شنبه تا پنجشنبه، ۹ تا ۱۸</li>
+                    <li><i class="bi bi-clock"></i> از ۹ صبح تا ۲۱، تمامی روزهای هفته و ایام تعطیل</li>
                 </ul>
             </div>
         </div>
@@ -163,6 +177,8 @@
         </div>
     </footer>
 
+    <CartDrawer @rendermode="InteractiveServer" />
+    <StoreTabBar @rendermode="InteractiveServer" />
     <ToastContainer @rendermode="InteractiveServer" />
 </div>
 

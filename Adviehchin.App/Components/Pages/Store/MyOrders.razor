@@ -25,16 +25,20 @@
     else if (!isAuthenticated)
     {
         <div class="st-login-prompt">
-            <i class="bi bi-person-lock"></i>
+            <span class="st-login-icon"><i class="bi bi-person-lock"></i></span>
             <h2>برای دیدن سفارش‌ها وارد شوید</h2>
-            <p>با شمارهٔ موبایل خود وارد شوید تا تاریخچهٔ سفارش‌ها را ببینید.</p>
-            <a class="st-btn" href="/login">ورود به حساب <i class="bi bi-arrow-left"></i></a>
+            <p>با شمارهٔ موبایل خود وارد شوید؛ کد ورود پیامک می‌شود و سفارش‌های همین حساب نمایش داده می‌شود.</p>
+            <div class="st-login-actions">
+                <a class="st-btn" href="/login?returnUrl=%2Fmy-orders">ورود به حساب <i class="bi bi-arrow-left"></i></a>
+                <a class="st-login-back" href="/shop">ادامهٔ خرید بدون ورود</a>
+            </div>
+            <p class="st-login-note"><i class="bi bi-shield-check"></i> ورود امن با شمارهٔ موبایل، بدون نیاز به رمز عبور</p>
         </div>
     }
     else if (orders.Count == 0)
     {
         <div class="st-empty" style="padding-block:4rem;">
-            <i class="bi bi-receipt-cutoff"></i>
+            <StoreMascot Expression="MascotExpression.Pointing" Size="MascotSize.Small" />
             <h3>هنوز سفارشی ثبت نکرده‌اید</h3>
             <p>اولین سفارش خود را از فروشگاه ثبت کنید.</p>
             <a class="st-btn" href="/shop">رفتن به فروشگاه</a>

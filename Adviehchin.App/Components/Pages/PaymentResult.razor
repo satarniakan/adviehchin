@@ -6,7 +6,7 @@
     <div class="card-panel text-center py-4">
         @if (Ok)
         {
-            <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-3"></i>
+            <StoreMascot Expression="MascotExpression.Happy" Size="MascotSize.Small" Class="st-mascot-center" />
             <h4 class="mb-2">پرداخت موفق بود</h4>
             @if (!string.IsNullOrWhiteSpace(Ref))
             {
@@ -15,7 +15,7 @@
         }
         else
         {
-            <i class="bi bi-x-circle-fill text-danger fs-1 d-block mb-3"></i>
+            <StoreMascot Expression="MascotExpression.Angry" Size="MascotSize.Small" Class="st-mascot-center" />
             <h4 class="mb-2">پرداخت ناموفق بود</h4>
             <div class="text-body-secondary small">اگر مبلغی از حساب شما کسر شده، به‌صورت خودکار برمی‌گردد. در غیر این صورت دوباره تلاش کنید.</div>
         }
